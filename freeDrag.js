@@ -4,6 +4,12 @@ $.fn.extend({
 			$el = this,
 			el = this[0];
 		return {
+			restart: function(p){
+				var
+					coords = this.getCoords(p.destScope);
+				
+				console.log(p,el.parentNode.childNodes)
+			},
 			start: function(e,p){
 				var
 					coords;
@@ -52,7 +58,7 @@ $.fn.extend({
 				p.lim.height = el.scope.clientHeight;
 				p.lim.borderX = el.scope.offsetWidth - el.scope.clientWidth;
 				p.lim.borderY = el.scope.offsetHeight - el.scope.clientHeight;
-				if(!p.scope){
+				if(!p.scope){//for document.body
 					p.lim.left = 0;
 					p.lim.top = 0;
 				}
@@ -87,8 +93,8 @@ $.fn.extend({
 				});
 			},
 			checkLeftScope: function(pos, p, dest){
-					var
-						left;
+				var
+					left;
 				if(/x/.test(p.leaveScope)){
 					if(pos.x + p.lim.left > p.lim.right){
 						left = true;
@@ -217,12 +223,19 @@ $.fn.extend({
 					this.checkLeftScope(pos, p);
 				}
 			},
-			getCoords: function(){
+			getCoords: function(node){
 				var 
-					box = el.getBoundingClientRect();
+					n = node || el,
+					box = n.getBoundingClientRect();					
 				return {
-					top: box.top + pageYOffset || document.documentElement.scrollLeft,
-					left: box.left + pageXOffset || document.documentElement.scrollTop
+					top: box.top + pageYOffset,
+					left: box.left + pageXOffset,
+					right: box.right/*+- pageXOffset*/,
+					bottom: box.bottom/*+- pageYOffset*/,
+					width: n.clientWidth,
+					height: n.clientHeight,
+					borderX: n.offsetWidth - n.clientWidth,
+					borderY: n.offsetHeight - n.clientHeight
 				};
 			}
 		}
@@ -282,12 +295,14 @@ $.fn.extend({
 			})
 			.on('setDragScope',function(e,data){
 				if(el.ableToDrag){
-					p.scope = data;
+					p.destScope = data;
+					$(el).FD_().restart(p);
 				}
 			})
 			.on('removeDragScope',function(e,data){
 				if(el.ableToDrag){
-					p.scope = null;
+					p.destScope = null;
+					//...
 				}
 			});
 		});

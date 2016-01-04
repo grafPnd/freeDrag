@@ -29,14 +29,18 @@ $(function(){
 			rel = $(node).data('rel'),
 			target = $('.j_handler').eq(rel);
 		expand(target);
-		// $(window).trigger('setDragScope',target.parents('.j_listItem').find('.j_subgroup'));
+		$(window).trigger('setDragScope',target.parents('.j_listItem').find('.j_subgroup'));
 		target.parents('.j_listItem').addClass('highlightedBlock');
+	  }, 
+	  onLeaveScope: function(source, dragEl){
+		console.log('element has left scope',source);
 	  },
 	  onReachScope: function(source, dragEl){// drag element over destination container
 		console.log('el has reached destination', source)
 	  },
 	  onDragEnd: function(node){// drop element
 		// console.log('draging has been ended',node);
+		return
 		var
 			rel = $(node).data('rel'),
 			target = $('.j_handler').eq(rel);
