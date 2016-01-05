@@ -22,7 +22,7 @@ $(function(){
 		sourceCopy: true,
 		leaveScope: 'x,y',// 'x' || 'y' || 'x,y'
 		onDragStart: function(node){
-			console.log('draging has been started',node); 
+			// console.log('draging has been started',node); 
 			var
 				rel = $(node).data('rel'),
 				target = $('.j_handler[data-rel=' + rel + ']');
@@ -59,13 +59,18 @@ $(function(){
 								var
 									src = el,
 									dragEl = el.dragEl;
-								console.log('element has left scope', el, p);
+								// console.log('element has left scope', el, p);
 							},
 							onReachScope: function(el, p){
 								var
 									src = el,
 									dragEl = el.dragEl;
-								console.log('element has reached scope', el, p);
+								// console.log('element has reached scope', el, p);
+							},
+							onDragEnd: function(el,p){
+								if(p.leftScope){
+									el.parentNode.removeChild(el);
+								}
 							}
 						});
 				},
@@ -79,24 +84,29 @@ $(function(){
 			var
 				src = el,
 				dragEl = el.dragEl;
-			console.log('element has left scope',el, p);
+			// console.log('element has left scope',el, p.leftScope);
 		},
 		onReachScope: function(el, p){
 			var
 				src = el,
 				dragEl = el.dragEl,
 				altSrc = p.inserted;
-			console.log('el has reached destination')
+			// console.log('el has reached destination',el,p.leftScope)
 			if(altSrc){
 				$(altSrc).removeClass('s_hidden');
 			}
 		},
-		onDragEnd: function(node){
-			console.log('draging has been ended',node);
+		onDragEnd: function(el,p){
+			// console.log('draging has been ended',el,p.leftScope);
 			var
-				rel = $(node).data('rel'),
+				rel = $(el).data('rel'),
 				target = $('.j_handler[data-rel=' + rel + ']');
-			collapse(target);
+			if(!p.leftScope){
+				p.inserted.style.opacity = 1;
+			}else{
+				p.inserted.parentNode.removeChild(p.inserted);
+				collapse(target);
+			}
 			$(window).trigger('removeDragScope');
 			target.parents('.j_listItem').find('.j_subgroup').removeClass('highlightedBlock');
 		}
@@ -121,13 +131,18 @@ $(function(){
 			var
 				src = el,
 				dragEl = el.dragEl;
-			console.log('element has left scope',el, p);
+			// console.log('element has left scope',el, p);
 		},
 		onReachScope: function(el, p){
 			var
 				src = el,
 				dragEl = el.dragEl;
-			console.log('element has reached scope',el);
+			// console.log('element has reached scope',el);
+		},
+		onDragEnd: function(el,p){
+			if(p.leftScope){
+				el.parentNode.removeChild(el);
+			}
 		}
 	});
 });

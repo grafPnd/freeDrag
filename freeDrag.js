@@ -140,17 +140,17 @@ $.fn.extend({
 				}
 				if(left){
 					if(!p.leftScope){
+						p.leftScope = true;
 						if(p && p.onLeaveScope && typeof(p.onLeaveScope) == 'function'){
 							p.onLeaveScope(el, p);
 						}
-						p.leftScope = true;
 					}
 				}else{
 					if(p.leftScope){
+						p.leftScope = false;
 						if(p && p.onReachScope && typeof(p.onReachScope) == 'function'){
 							p.onReachScope(el, p);
 						}
-						p.leftScope = false;
 					}
 				}
 			},
@@ -300,7 +300,7 @@ $.fn.extend({
 					}
 					el.dragStarted = false;
 					if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
-						p.onDragEnd(el);
+						p.onDragEnd(el,p);
 					}
 				}
 				if(window.SFDCaptured){
