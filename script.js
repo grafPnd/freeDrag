@@ -29,24 +29,69 @@ $(function(){
 			expand(target);
 			$(window).trigger('setDragScope',{
 				scope: target.parents('.j_listItem').find('.j_subgroup')[0],
+				insert: true,
 				center: true,
 				sortable: 'y',// 'x' || 'y' || 'x,y'
-				mod: function($dragEl){
-					$dragEl.css({
+				dragMod: function(el){
+					var
+						$el = $(el);
+					$el.css({
 						height: '30px',
 						width: '200px'
 					});
+				},
+				srcMod: function(src, drag){
+					$(src)
+						.css({
+							top: '0px',
+							left: '0px',
+							zIndex: 1,
+							opacity: 0
+						})
+						.removeClass('trayItem s_noselect')
+						.addClass('s_string menuItem submenuItem j_SubListItem')
+						.html(drag.innerHTML)
+						.SbmFreeDrag({
+							scope: 'parent',
+							leaveScope: 'x',// 'x' || 'y' || 'x,y'
+							sortable: 'y',// 'x' || 'y' || 'x,y'
+							onLeaveScope: function(el, p){
+								var
+									src = el,
+									dragEl = el.dragEl;
+								console.log('element has left scope', el, p);
+							},
+							onReachScope: function(el, p){
+								var
+									src = el,
+									dragEl = el.dragEl;
+								console.log('element has reached scope', el, p);
+							}
+						});
+				},
+				srcPasted: function(src){
+					$(src).addClass('s_hidden');
 				}
 			});
 			target.parents('.j_listItem').find('.j_subgroup').addClass('highlightedBlock');
 		}, 
-		onLeaveScope: function(source, dragEl){
-			console.log('element has left scope',source);
+		onLeaveScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl;
+			console.log('element has left scope',el, p);
 		},
-		onReachScope: function(source, dragEl){// drag element over destination container
-			console.log('el has reached destination', source)
+		onReachScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl,
+				altSrc = p.inserted;
+			console.log('el has reached destination')
+			if(altSrc){
+				$(altSrc).removeClass('s_hidden');
+			}
 		},
-		onDragEnd: function(node){// drop element
+		onDragEnd: function(node){
 			console.log('draging has been ended',node);
 			var
 				rel = $(node).data('rel'),
@@ -72,11 +117,17 @@ $(function(){
 		scope: 'parent',
 		leaveScope: 'x',// 'x' || 'y' || 'x,y'
 		sortable: 'y',// 'x' || 'y' || 'x,y'
-		onLeaveScope: function(source, dragEl){
-			console.log('element has left scope',source);
+		onLeaveScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl;
+			console.log('element has left scope',el, p);
 		},
-		onReachScope: function(source, dragEl){
-			console.log('element has reached scope',source);
+		onReachScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl;
+			console.log('element has reached scope',el);
 		}
 	});
 });

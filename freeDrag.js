@@ -12,22 +12,32 @@ $.fn.extend({
 					}
 				el.destScope = d.scope;
 				p.sortable = d.sortable;
-				p.lim = this.getCoords(d.scope);
 				el.destScope.appendChild(el.dragEl);
-				if(el.destScope.nodeName.toLowerCase() == 'body'){//for document.body
-					p.lim.left = 0;
-					p.lim.top = 0;
-				}
-				if(typeof(d.mod) == 'function'){
-					d.mod(el.$dragEl);
+				if(typeof(d.dragMod) == 'function'){
+					d.dragMod(el.dragEl);
 				}
 				if(d.center){
 					el.runtime.shiftX = el.dragEl.clientWidth/2;
 					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
+				if(d.insert){
+					p.inserted = el.dragEl.cloneNode();
+					el.destScope.appendChild(p.inserted);
+					if(typeof(d.srcMod) == 'function'){
+						d.srcMod(p.inserted,el.dragEl);
+					}
+				}
 				p.leftScope = true;
+				p.lim = this.getCoords(d.scope);
+				if(el.destScope.nodeName.toLowerCase() == 'body'){//for document.body
+					p.lim.left = 0;
+					p.lim.top = 0;
+				}
 				if(p.sortable){
 					this.getGrid(p);
+				}
+				if(typeof(d.srcPasted) == 'function'){
+					d.srcPasted(p.inserted);
 				}
 				el.dragEl.style.left = el.runtime.startX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2 + 'px';
 				el.dragEl.style.top = el.runtime.startY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2 + 'px';
@@ -109,7 +119,7 @@ $.fn.extend({
 						p.grid.stack.push(node);
 						incX += node.clientWidth;
 						incY += node.clientHeight;
-						if(node == el){
+						if(node == el || node == p.inserted){
 							el.intIndex = i;
 						}
 					}
@@ -131,14 +141,14 @@ $.fn.extend({
 				if(left){
 					if(!p.leftScope){
 						if(p && p.onLeaveScope && typeof(p.onLeaveScope) == 'function'){
-							p.onLeaveScope(el, el.dargEl);
+							p.onLeaveScope(el, p);
 						}
 						p.leftScope = true;
 					}
 				}else{
 					if(p.leftScope){
 						if(p && p.onReachScope && typeof(p.onReachScope) == 'function'){
-							p.onReachScope(el, el.dargEl);
+							p.onReachScope(el, p);
 						}
 						p.leftScope = false;
 					}
@@ -152,7 +162,8 @@ $.fn.extend({
 					l = p.grid.inc.length,
 					i = l - 1,
 					current = el.intIndex,
-					delta;
+					delta,
+					src = p.inserted || el;
 				if(/x/.test(p.sortable)){
 					//...
 				}
@@ -162,8 +173,8 @@ $.fn.extend({
 					if(delta - p.overcrossing > 0){
 						// console.log('+')
 						for(i; i >= 0; i--){
-							if(pos.y + el.clientHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
-								current = i ;
+							if(pos.y + src.clientHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
+								current = i - 1 ;
 							}
 						}
 					}
@@ -171,18 +182,19 @@ $.fn.extend({
 						// console.log('-')
 						for(i; i >= 0; i--){
 							if(pos.y <= p.grid.inc[i].y - p.overcrossing){
-								current = i;
+								current = i - 1;
 							}
 						}
 					}
-					if(pos.y  + el.clientHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
-						current = l;
+					if(pos.y  + src.clientHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
+						// console.log('ofl')
+						current = l - 1;
 					}
 					if(current != el.intIndex){
-						if(current == l){
-							el.parentNode.appendChild(el);
+						if(current == l - 1){
+							src.parentNode.appendChild(src);
 						}else{
-							el.parentNode.insertBefore(el, p.grid.stack[current]);
+							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 						}
 						el.intIndex = current;
 						el.runtime.startY = pos.y;
