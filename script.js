@@ -22,7 +22,7 @@ $(function(){
   
   $('.j_trayItem').SbmFreeDrag({
 	  sourceCopy: true,
-	  leaveScope: 'x',// 'x' || 'y' || 'x,y'
+	  leaveScope: 'x,y',// 'x' || 'y' || 'x,y'
 	  onDragStart: function(node){
 		// console.log('draging has been started',node); 
 		var

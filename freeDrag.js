@@ -5,10 +5,15 @@ $.fn.extend({
 			el = this[0];
 		return {
 			restart: function(p){
-				var
-					coords = this.getCoords(p.destScope);
-				
-				console.log(p,el.parentNode.childNodes)
+					p.lim = this.getCoords(p.destScope);
+					p.destScope.appendChild(el.dragEl);
+					//this.moveAt(e, p, true);
+				if(p.destScope.nodeName.toLowerCase() == 'body'){//for document.body
+					p.lim.left = 0;
+					p.lim.top = 0;
+				}
+				p.leftScope = true;
+				// console.log(p,el.parentNode.childNodes)
 			},
 			start: function(e,p){
 				var
@@ -45,6 +50,8 @@ $.fn.extend({
 				}
 				el.dragStarted = true;
 				$(document.body).children().addClass('s_noselect');
+				
+				// console.log(p)
 			},
 			getLim: function(p){
 				var
@@ -58,7 +65,7 @@ $.fn.extend({
 				p.lim.height = el.scope.clientHeight;
 				p.lim.borderX = el.scope.offsetWidth - el.scope.clientWidth;
 				p.lim.borderY = el.scope.offsetHeight - el.scope.clientHeight;
-				if(!p.scope){//for document.body
+				if(el.scope.nodeName.toLowerCase() == 'body'){//for document.body
 					p.lim.left = 0;
 					p.lim.top = 0;
 				}
@@ -96,12 +103,12 @@ $.fn.extend({
 				var
 					left;
 				if(/x/.test(p.leaveScope)){
-					if(pos.x + p.lim.left > p.lim.right){
+					if(pos.x > p.lim.width || pos.x + el.dragEl.clientWidth < 0){
 						left = true;
 					}
 				}
 				if(/y/.test(p.leaveScope)){
-					if(pos.y + p.lim.top > p.lim.bottom){
+					if(pos.y + el.dragEl.clientHeight < 0 || pos.y > p.lim.height){
 						left = true;
 					}
 				}
@@ -201,8 +208,8 @@ $.fn.extend({
 						x: e.pageX - el.runtime.shiftX - p.lim.left + p.lim.borderX,
 						y: e.pageY - el.runtime.shiftY - p.lim.top + p.lim.borderY
 					};
-					// console.log(p)
-				if(ultimate || !p.scope){
+					 // console.log(p.lim,pos)
+				if((ultimate || !p.scope) && !p.destScope){
 					if(p.scope){
 						pos = this.toRange(pos, p);
 					}
