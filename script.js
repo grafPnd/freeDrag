@@ -83,7 +83,11 @@ $(function(){
 		onLeaveScope: function(el, p){
 			var
 				src = el,
-				dragEl = el.dragEl;
+				dragEl = el.dragEl,
+				altSrc = p.inserted;
+			if(altSrc){
+				$(altSrc).addClass('s_hidden');
+			}
 			// console.log('element has left scope',el, p.leftScope);
 		},
 		onReachScope: function(el, p){
