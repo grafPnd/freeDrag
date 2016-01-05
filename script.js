@@ -25,10 +25,18 @@ $(function(){
 			console.log('draging has been started',node); 
 			var
 				rel = $(node).data('rel'),
-				target = $('.j_handler').eq(rel);
+				target = $('.j_handler[data-rel=' + rel + ']');
 			expand(target);
 			$(window).trigger('setDragScope',{
-				scope: target.parents('.j_listItem').find('.j_subgroup')[0]
+				scope: target.parents('.j_listItem').find('.j_subgroup')[0],
+				center: true,
+				sortable: 'y',// 'x' || 'y' || 'x,y'
+				mod: function($dragEl){
+					$dragEl.css({
+						height: '30px',
+						width: '200px'
+					});
+				}
 			});
 			target.parents('.j_listItem').find('.j_subgroup').addClass('highlightedBlock');
 		}, 
@@ -42,7 +50,7 @@ $(function(){
 			console.log('draging has been ended',node);
 			var
 				rel = $(node).data('rel'),
-				target = $('.j_handler').eq(rel);
+				target = $('.j_handler[data-rel=' + rel + ']');
 			collapse(target);
 			$(window).trigger('removeDragScope');
 			target.parents('.j_listItem').find('.j_subgroup').removeClass('highlightedBlock');
