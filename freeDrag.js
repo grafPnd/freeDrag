@@ -264,6 +264,7 @@ $.fn.extend({
 			});
 			$(window.top)
 			.on('mouseup',function(){
+				// return
 				if(el.ableToDrag){
 					el.ableToDrag = false;
 					el.style.opacity = 1;
@@ -288,6 +289,7 @@ $.fn.extend({
 							y: Math.abs(e.pageY - el.runtime.pageY)
 						};
 					if(el.dragStarted){
+						// return
 						$(el).FD_().moveAt(e, p);
 					}else{
 						if(delta.x <= p.sensitivity && delta.y <= p.sensitivity){
@@ -302,7 +304,7 @@ $.fn.extend({
 			})
 			.on('setDragScope',function(e,data){
 				if(el.ableToDrag){
-					p.destScope = data;
+					p.destScope = data.scope;
 					$(el).FD_().restart(p);
 				}
 			})
