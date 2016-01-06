@@ -6,7 +6,7 @@ $.fn.extend({
 		return {
 			restart: function(p,d){
 				var
-					pos = {//cursor position
+					pos = {
 						x: 0,
 						y: 0
 					}
@@ -29,7 +29,7 @@ $.fn.extend({
 				}
 				p.leftScope = true;
 				p.lim = this.getCoords(d.scope);
-				if(el.destScope.nodeName.toLowerCase() == 'body'){//for document.body
+				if(el.destScope.nodeName.toLowerCase() == 'body'){
 					p.lim.left = 0;
 					p.lim.top = 0;
 				}
@@ -90,7 +90,7 @@ $.fn.extend({
 				p.lim.height = el.scope.clientHeight;
 				p.lim.borderX = el.scope.offsetWidth - el.scope.clientWidth;
 				p.lim.borderY = el.scope.offsetHeight - el.scope.clientHeight;
-				if(el.scope.nodeName.toLowerCase() == 'body'){//for document.body
+				if(el.scope.nodeName.toLowerCase() == 'body'){
 					p.lim.left = 0;
 					p.lim.top = 0;
 				}
@@ -169,9 +169,7 @@ $.fn.extend({
 				}
 				if(/y/.test(p.sortable)){
 					delta = pos.y - el.runtime.startY
-					// console.log(pos.y , el.runtime.startY)
 					if(delta - p.overcrossing > 0){
-						// console.log('+')
 						for(i; i >= 0; i--){
 							if(pos.y + src.clientHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
 								current = i - 1 ;
@@ -179,7 +177,6 @@ $.fn.extend({
 						}
 					}
 					if(delta + p.overcrossing < 0){
-						// console.log('-')
 						for(i; i >= 0; i--){
 							if(pos.y <= p.grid.inc[i].y - p.overcrossing){
 								current = i - 1;
@@ -187,7 +184,6 @@ $.fn.extend({
 						}
 					}
 					if(pos.y  + src.clientHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
-						// console.log('ofl')
 						current = l - 1;
 					}
 					if(current != el.intIndex){
