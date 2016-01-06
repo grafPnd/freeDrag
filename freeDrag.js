@@ -58,6 +58,7 @@ $.fn.extend({
 				el.$dragEl = $(el.dragEl);
 				el.dragEl.innerHTML = el.innerHTML;
 				el.scope.appendChild(el.dragEl);
+				el.dragEl.origin = el;
 				el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
 				if(p.sortable){
 					this.getGrid(p);
@@ -66,7 +67,7 @@ $.fn.extend({
 						'height': el.clientHeight + 'px'
 					});
 				}
-				this.moveAt(e, p, true);
+				p.defferedMove = e;
 				el.$dragEl.css({
 					'zIndex': 1000,
 					'position': 'absolute',
@@ -277,6 +278,11 @@ $.fn.extend({
 				el = this;
 			$el.on('mousedown',function(e){
 				if(!window.SFDCaptured){
+					if(p.lock){
+						if($el.hasClass(p.lock)){
+							return;
+						}
+					}
 					el.ableToDrag = true;
 					el.runtime = {
 						pageX: e.pageX,
@@ -289,6 +295,7 @@ $.fn.extend({
 			.on('mouseup',function(){
 				if(el.ableToDrag){
 					el.ableToDrag = false;
+					p.defferedMove = false;
 					el.style.opacity = 1;
 					if(el.dragStarted){
 						el.dragEl.parentNode.removeChild(el.dragEl);
@@ -298,6 +305,7 @@ $.fn.extend({
 					if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
 						p.onDragEnd(el,p);
 					}
+					p.inserted = null;
 				}
 				if(window.SFDCaptured){
 					window.SFDCaptured = false;
@@ -319,6 +327,9 @@ $.fn.extend({
 						$(el).FD_().start(e,p);
 						if(p && p.onDragStart && typeof(p.onDragStart) == 'function'){
 							p.onDragStart(el.dragEl);
+						}
+						if(p.defferedMove){
+							$(el).FD_().moveAt(p.defferedMove, p, true);
 						}
 					}
 				}

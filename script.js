@@ -20,6 +20,7 @@ $(function(){
   
 	$('.j_trayItem').SbmFreeDrag({
 		sourceCopy: true,
+		lock: 'j_locked',
 		leaveScope: 'x,y',// 'x' || 'y' || 'x,y'
 		onDragStart: function(node){
 			// console.log('draging has been started',node); 
@@ -52,6 +53,7 @@ $(function(){
 						.addClass('s_string menuItem submenuItem j_SubListItem')
 						.html(drag.innerHTML)
 						.SbmFreeDrag({
+							lock: 'j_locked',
 							scope: 'parent',
 							leaveScope: 'x',// 'x' || 'y' || 'x,y'
 							sortable: 'y',// 'x' || 'y' || 'x,y'
@@ -69,6 +71,7 @@ $(function(){
 							},
 							onDragEnd: function(el,p){
 								if(p.leftScope){
+									$(drag.origin).removeClass('j_locked');
 									el.parentNode.removeChild(el);
 								}
 							}
@@ -106,16 +109,22 @@ $(function(){
 				rel = $(el).data('rel'),
 				target = $('.j_handler[data-rel=' + rel + ']');
 			if(!p.leftScope){
-				p.inserted.style.opacity = 1;
+				if(p.inserted){
+					p.inserted.style.opacity = 1;
+				}
+				$(el).addClass('j_locked');
 			}else{
-				p.inserted.parentNode.removeChild(p.inserted);
+				if(p.inserted){
+					p.inserted.parentNode.removeChild(p.inserted);
+				}
 				collapse(target);
 			}
 			$(window).trigger('removeDragScope');
 			target.parents('.j_listItem').find('.j_subgroup').removeClass('highlightedBlock');
 		}
 	}); 
-	$('.j_listItem').SbmFreeDrag({
+	$('.j_listItem').SbmFreeDrag({	
+		lock: 'j_locked',
 		scope: 'parent',
 		sortable: 'y',// 'x' || 'y' || 'x,y'
 		overcrossing: 5,// 5px overcrossing before replacement happens
@@ -128,6 +137,7 @@ $(function(){
 		}
 	});
 	$('.j_SubListItem').SbmFreeDrag({
+		lock: 'j_locked',
 		scope: 'parent',
 		leaveScope: 'x',// 'x' || 'y' || 'x,y'
 		sortable: 'y',// 'x' || 'y' || 'x,y'
