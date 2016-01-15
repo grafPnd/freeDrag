@@ -236,16 +236,22 @@ $.fn.extend({
 				return val;
 			},
 			inRange: function(val, p, x){
-				if(!p || !p.scope || p.leaveScope){
+				if(!p || !p.scope){
 					return true;
 				}
 				if(x){
+					if(/x/.test(p.leaveScope)){
+						return true;
+					}
 					if(el.scope != el.dragEl.parentNode){
 						return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
 					}else{
 						return(0 <= val.x && p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
 					}
 				}else{
+					if(/y/.test(p.leaveScope)){
+						return true;
+					}
 					if(el.scope != el.dragEl.parentNode){
 						return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.clientHeight);
 					}else{
