@@ -199,22 +199,40 @@ $.fn.extend({
 					}
 				}
 			},
-			toRange: function(val, p){
+			toRange: function(val, p, axis){
 				if(!p || !p.scope || p.leaveScope){
 					return val;
 				}
-				if(p.lim.left > val.x){
-					val.x = p.lim.left
+				if(el.scope == el.dragEl.parentNode){
+					if(0 > val.x){
+						val.x = 0;
+					}
+					if(p.lim.width - el.dragEl.clientWidth < val.x){
+						val.x = p.lim.width - el.dragEl.clientWidth
+					}
+					if(0 > val.y){
+						val.y = 0;
+					}
+					if(p.lim.height - el.dragEl.clientHeight < val.y){
+						val.y = p.lim.height - el.dragEl.clientHeight;
+					}
+				}else{
+					if(p.lim.left > val.x){
+						val.x = p.lim.left;
+					}
+					if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth < val.x){
+						val.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth
+					}
+					if(p.lim.top > val.y){
+						val.y = p.lim.top;
+					}
+					if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.clientHeight < val.y){
+						val.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.clientHeight;
+					}
 				}
-				if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth < val.x){
-					val.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth
+				if(axis){
+					return val[axis];
 				}
-				if(p.lim.top > val.y){
-					val.y = p.lim.top;
-				}
-				if(p.lim.top + p.lim.height - p.lim.borderY - el.dragEl.clientHeight < val.y){
-					val.y = p.lim.top + p.lim.height - p.lim.borderY - el.dragEl.clientHeight;
-				}				
 				return val;
 			},
 			inRange: function(val, p, x){
@@ -222,9 +240,17 @@ $.fn.extend({
 					return true;
 				}
 				if(x){
-					return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
+					if(el.scope != el.dragEl.parentNode){
+						return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
+					}else{
+						return(0 <= val.x && p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
+					}
 				}else{
-					return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.clientHeight);	
+					if(el.scope != el.dragEl.parentNode){
+						return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.clientHeight);
+					}else{
+						return(0 <= val.y && p.lim.height + p.lim.borderY >= val.y + el.dragEl.clientHeight);
+					}	
 				}
 			},
 			moveAt: function(e, p, ultimate){
@@ -241,17 +267,23 @@ $.fn.extend({
 					el.dragEl.style.top = pos.y + 'px';
 					return;
 				}
-				if(this.inRange(pos, p, true)){
-					el.dragEl.style.left = pos.x + 'px';
-				}
-				if(this.inRange(pos, p)){
-					el.dragEl.style.top = pos.y + 'px';
-				}
 				if(!p.leftScope){
 					this.checkOriginPosition(pos, p);
 				}
 				if(p.leaveScope){
 					this.checkLeftScope(pos, p);
+				}
+				if(this.inRange(pos, p, true)){
+					el.dragEl.style.left = pos.x + 'px';
+				}else{
+					pos.x = this.toRange(pos, p, 'x');
+					el.dragEl.style.left = pos.x + 'px';
+				}
+				if(this.inRange(pos, p)){
+					el.dragEl.style.top = pos.y + 'px';
+				}else{
+					pos.y = this.toRange(pos, p, 'y');
+					el.dragEl.style.top = pos.y + 'px';
 				}
 			},
 			getCoords: function(node){
