@@ -333,9 +333,11 @@ $.fn.extend({
 						el.dragEl.parentNode.removeChild(el.dragEl);
 						el.dragEl = null;
 					}
-					el.dragStarted = false;
-					if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
-						p.onDragEnd(el,p);
+					if(el.dragStarted){
+						el.dragStarted = false;
+						if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
+							p.onDragEnd(el,p);
+						}
 					}
 					p.inserted = null;
 				}
