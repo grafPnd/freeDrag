@@ -63,8 +63,8 @@ $.fn.extend({
 				if(p.sortable){
 					this.getGrid(p);
 					el.$dragEl.css({
-						'width': el.clientWidth + 'px',
-						'height': el.clientHeight + 'px'
+						'width': el.offsetWidth + 'px',
+						'height': el.offsetHeight + 'px'
 					});
 				}
 				p.defferedMove = e;
@@ -110,16 +110,16 @@ $.fn.extend({
 			$(scope).children().each(function(i,node){
 					if(node != el.dragEl){
 						p.grid.src.push({
-							x: node.clientWidth,
-							y: node.clientHeight
+							x: node.offsetWidth,
+							y: node.offsetHeight
 						});
 						p.grid.inc.push({
 							x: incX,
 							y: incY
 						});
 						p.grid.stack.push(node);
-						incX += node.clientWidth;
-						incY += node.clientHeight;
+						incX += node.offsetWidth;
+						incY += node.offsetHeight;
 						if(node == el || node == p.inserted){
 							el.intIndex = i;
 						}
@@ -130,12 +130,12 @@ $.fn.extend({
 				var
 					left;
 				if(/x/.test(p.leaveScope)){
-					if(pos.x > p.lim.width || pos.x + el.dragEl.clientWidth < 0){
+					if(pos.x > p.lim.width || pos.x + el.dragEl.offsetWidth < 0){
 						left = true;
 					}
 				}
 				if(/y/.test(p.leaveScope)){
-					if(pos.y + el.dragEl.clientHeight < 0 || pos.y > p.lim.height){
+					if(pos.y + el.dragEl.offsetHeight < 0 || pos.y > p.lim.height){
 						left = true;
 					}
 				}
@@ -172,7 +172,7 @@ $.fn.extend({
 					delta = pos.y - el.runtime.startY
 					if(delta - p.overcrossing > 0){
 						for(i; i >= 0; i--){
-							if(pos.y + src.clientHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
+							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
 								current = i - 1 ;
 							}
 						}
@@ -184,7 +184,7 @@ $.fn.extend({
 							}
 						}
 					}
-					if(pos.y  + src.clientHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
+					if(pos.y  + src.offsetHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
 						current = l - 1;
 					}
 					if(current != el.intIndex){
@@ -200,34 +200,37 @@ $.fn.extend({
 				}
 			},
 			toRange: function(val, p, axis){
-				if(!p || !p.scope || p.leaveScope){
+				if(!p || !p.scope){
+					if(axis){
+						return val[axis];
+					}
 					return val;
 				}
 				if(el.scope == el.dragEl.parentNode){
 					if(0 > val.x){
 						val.x = 0;
 					}
-					if(p.lim.width - el.dragEl.clientWidth < val.x){
-						val.x = p.lim.width - el.dragEl.clientWidth
+					if(p.lim.width - el.dragEl.offsetWidth < val.x){
+						val.x = p.lim.width - el.dragEl.offsetWidth
 					}
 					if(0 > val.y){
 						val.y = 0;
 					}
-					if(p.lim.height - el.dragEl.clientHeight < val.y){
-						val.y = p.lim.height - el.dragEl.clientHeight;
+					if(p.lim.height - el.dragEl.offsetHeight < val.y){
+						val.y = p.lim.height - el.dragEl.offsetHeight;
 					}
 				}else{
 					if(p.lim.left > val.x){
 						val.x = p.lim.left;
 					}
-					if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth < val.x){
-						val.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.clientWidth
+					if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth < val.x){
+						val.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth
 					}
 					if(p.lim.top > val.y){
 						val.y = p.lim.top;
 					}
-					if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.clientHeight < val.y){
-						val.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.clientHeight;
+					if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight < val.y){
+						val.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight;
 					}
 				}
 				if(axis){
@@ -244,18 +247,18 @@ $.fn.extend({
 						return true;
 					}
 					if(el.scope != el.dragEl.parentNode){
-						return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
+						return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.offsetWidth);
 					}else{
-						return(0 <= val.x && p.lim.width - p.lim.borderX >= val.x + el.dragEl.clientWidth);
+						return(0 <= val.x && p.lim.width - p.lim.borderX >= val.x + el.dragEl.offsetWidth);
 					}
 				}else{
 					if(/y/.test(p.leaveScope)){
 						return true;
 					}
 					if(el.scope != el.dragEl.parentNode){
-						return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.clientHeight);
+						return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.offsetHeight);
 					}else{
-						return(0 <= val.y && p.lim.height + p.lim.borderY >= val.y + el.dragEl.clientHeight);
+						return(0 <= val.y && p.lim.height + p.lim.borderY >= val.y + el.dragEl.offsetHeight);
 					}	
 				}
 			},

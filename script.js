@@ -61,12 +61,14 @@ $(function(){
 								var
 									src = el,
 									dragEl = el.dragEl;
+								p.leaveScope = 'x,y';
 								// console.log('element has left scope', el, p);
 							},
 							onReachScope: function(el, p){
 								var
 									src = el,
 									dragEl = el.dragEl;
+								p.leaveScope = 'x';
 								// console.log('element has reached scope', el, p);
 							},
 							onDragEnd: function(el,p){
@@ -145,12 +147,14 @@ $(function(){
 			var
 				src = el,
 				dragEl = el.dragEl;
+			p.leaveScope = 'x,y';
 			// console.log('element has left scope',el, p);
 		},
 		onReachScope: function(el, p){
 			var
 				src = el,
 				dragEl = el.dragEl;
+			p.leaveScope = 'x';
 			// console.log('element has reached scope',el);
 		},
 		onDragEnd: function(el,p){
