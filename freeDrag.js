@@ -99,6 +99,7 @@ $.fn.extend({
 			},
 			getGrid: function(p){
 				var
+					i = 0,
 					incX = 0,
 					incY = 0,
 					scope = el.destScope || el.scope;
@@ -107,7 +108,7 @@ $.fn.extend({
 					src: [],
 					stack: []
 				};
-			$(scope).children().each(function(i,node){
+			$(scope).children().each(function(ii,node){
 					if(node != el.dragEl){
 						p.grid.src.push({
 							x: node.offsetWidth,
@@ -123,6 +124,7 @@ $.fn.extend({
 						if(node == el || node == p.inserted){
 							el.intIndex = i;
 						}
+						i++;
 					}
 				});
 			},
@@ -160,41 +162,46 @@ $.fn.extend({
 					return;
 				}
 				var
-					l = p.grid.inc.length,
-					i = l - 1,
-					current = el.intIndex,
+					max = p.grid.inc.length - 1,
+					i = max,
+					current = el.intIndex,//index of opaque element
 					delta,
 					src = p.inserted || el;
 				if(/x/.test(p.sortable)){
 					//...
 				}
 				if(/y/.test(p.sortable)){
-					delta = pos.y - el.runtime.startY
+					delta = pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2));
 					if(delta - p.overcrossing > 0){
 						for(i; i >= 0; i--){
 							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
-								current = i - 1 ;
+								current = i - 1;
 							}
 						}
 					}
 					if(delta + p.overcrossing < 0){
 						for(i; i >= 0; i--){
 							if(pos.y <= p.grid.inc[i].y - p.overcrossing){
-								current = i - 1;
+								current = i ;
 							}
 						}
 					}
-					if(pos.y  + src.offsetHeight >= p.grid.inc[l - 1].y  + p.grid.src[l - 1].y + p.overcrossing){
-						current = l - 1;
+					if(pos.y  + src.offsetHeight >= p.grid.inc[max].y  + p.grid.src[max].y + p.overcrossing){
+						current = max;
 					}
-					if(current != el.intIndex){
-						if(current == l - 1){
+					if(current  != el.intIndex){
+						if(current == max){
 							src.parentNode.appendChild(src);
 						}else{
-							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+							if(delta - p.overcrossing > 0){
+								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+							}
+							if(delta - p.overcrossing < 0){
+								src.parentNode.insertBefore(src, p.grid.stack[current]);
+							}
 						}
 						el.intIndex = current;
-						el.runtime.startY = pos.y;
+						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.top + p.lim.borderY/2;
 						this.getGrid(p);
 					}
 				}
