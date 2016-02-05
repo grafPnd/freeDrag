@@ -1,4 +1,5 @@
 $.fn.extend({
+	//TODO: когда топЭлемент попадает в скоп, его оверфлов по Х влияет на У: если элемент у боковой границы- его нельзя опустить или поднять
 	FD_: function(){
 		var 
 			$el = this,
@@ -21,7 +22,7 @@ $.fn.extend({
 					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
 				if(d.insert){
-					p.inserted = el.dragEl.cloneNode();
+						p.inserted = d && d.nsrc ? d.nsrc : el.dragEl.cloneNode();
 					el.destScope.appendChild(p.inserted);
 					if(typeof(d.srcMod) == 'function'){
 						d.srcMod(p.inserted,el.dragEl);
@@ -44,17 +45,21 @@ $.fn.extend({
 			},
 			start: function(e,p){
 				var
-					coords;
+					coords,
+					computed = getComputedStyle(el);
 				p.overcrossing = p.overcrossing || 0;
-				p.sensitivity = p.sensitivity || 0;
+					p.sensitivity = p.sensitivity || 1;
 				el.scope = (p && p.scope) ? p.scope == 'parent' ? el.parentNode : p.scope.length ? p.scope[0] : p.scope : window.top.document.body;
 				this.getLim(p);
 				coords = this.getCoords();
-				el.runtime.shiftX = e.pageX - coords.left,//e.offsetX
+				el.fullHeight = el.offsetHeight + parseInt(computed.marginTop,10) + parseInt(computed.marginBottom,10);
+				el.fullWidth = el.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
+				el.runtime.shiftX = e.pageX - coords.left;//e.offsetX
 				el.runtime.shiftY= e.pageY - coords.top;//e.offsetY	
 				el.runtime.startX= e.pageX;
 				el.runtime.startY= e.pageY;
-				el.dragEl = el.cloneNode();
+				el.initIndex = null;
+				el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
 				el.$dragEl = $(el.dragEl);
 				el.dragEl.innerHTML = el.innerHTML;
 				el.scope.appendChild(el.dragEl);
@@ -63,8 +68,8 @@ $.fn.extend({
 				if(p.sortable){
 					this.getGrid(p);
 					el.$dragEl.css({
-						'width': el.offsetWidth + 'px',
-						'height': el.offsetHeight + 'px'
+						'width': el.clientWidth + 'px',
+						'height': el.clientHeight + 'px'
 					});
 				}
 				p.defferedMove = e;
@@ -109,20 +114,31 @@ $.fn.extend({
 					stack: []
 				};
 			$(scope).children().each(function(ii,node){
+					var
+						computed = getComputedStyle(node);
 					if(node != el.dragEl){
+						node.fullHeight = node.offsetHeight + parseInt(computed.marginTop,10) + parseInt(computed.marginBottom,10);
+						node.fullWidth = node.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
 						p.grid.src.push({
 							x: node.offsetWidth,
-							y: node.offsetHeight
+							y: node.offsetHeight,
+							mTop: parseInt(computed.marginTop,10),
+							mLeft: parseInt(computed.marginLeft,10),
+							mBotom: parseInt(computed.marginBottom,10),
+							mRight: parseInt(computed.marginRight,10)
 						});
 						p.grid.inc.push({
 							x: incX,
 							y: incY
 						});
 						p.grid.stack.push(node);
-						incX += node.offsetWidth;
-						incY += node.offsetHeight;
+						incX += node.fullWidth;
+						incY += node.fullHeight;
 						if(node == el || node == p.inserted){
-							el.intIndex = i;
+								el.curIndex = i;
+								if(el.initIndex === null){
+									el.initIndex = i;
+								}
 						}
 						i++;
 					}
@@ -158,49 +174,79 @@ $.fn.extend({
 				}
 			},
 			checkOriginPosition: function(pos, p){
+				//TODO:check when p.sortable == 'x,y'
 				if(!p || !p.sortable){
 					return;
 				}
 				var
 					max = p.grid.inc.length - 1,
 					i = max,
-					current = el.intIndex,//index of opaque element
-					delta,
+					current = el.curIndex,//index of transparent element
+					delta = {
+						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.left + p.lim.borderX/2)),
+						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2))
+					},
 					src = p.inserted || el;
-				if(/x/.test(p.sortable)){
-					//...
-				}
-				if(/y/.test(p.sortable)){
-					delta = pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2));
-					if(delta - p.overcrossing > 0){
-						for(i; i >= 0; i--){
-							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].y + p.overcrossing){
+				if(/x/.test(p.sortable)){				
+					for(i = max; i >= 0; i--){
+						if(delta.x - p.overcrossing > 0){
+							if(pos.x + src.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
+								current = i - 1;
+							}
+						}
+						if(delta.x + p.overcrossing < 0){
+							if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing){
 								current = i - 1;
 							}
 						}
 					}
-					if(delta + p.overcrossing < 0){
-						for(i; i >= 0; i--){
-							if(pos.y <= p.grid.inc[i].y - p.overcrossing){
-								current = i ;
-							}
-						}
-					}
-					if(pos.y  + src.offsetHeight >= p.grid.inc[max].y  + p.grid.src[max].y + p.overcrossing){
+					if(pos.x + src.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
 						current = max;
 					}
-					if(current  != el.intIndex){
+					if(current != el.curIndex){
 						if(current == max){
 							src.parentNode.appendChild(src);
 						}else{
-							if(delta - p.overcrossing > 0){
+							if(delta.x - p.overcrossing > 0){
 								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 							}
-							if(delta - p.overcrossing < 0){
-								src.parentNode.insertBefore(src, p.grid.stack[current]);
+							if(delta.x - p.overcrossing < 0){
+								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 							}
 						}
-						el.intIndex = current;
+						el.curIndex = current;
+						el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.left + p.lim.borderX/2;
+						this.getGrid(p);
+					}
+				}
+				if(/y/.test(p.sortable)){
+					for(i = max; i >= 0; i--){
+						if(delta.y - p.overcrossing > 0){
+							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].mTop + p.grid.src[i].y + p.overcrossing){
+								current = i - 1;
+							}
+						}
+						if(delta.y + p.overcrossing < 0){
+							if(pos.y <= p.grid.inc[i].y + p.grid.src[i].mTop - p.overcrossing){
+								current = i - 1;
+							}
+						}
+					}
+					if(pos.y  + src.offsetHeight >= p.grid.inc[max].y  + p.grid.src[max].y + p.grid.src[max].mTop + p.overcrossing){
+						current = max;
+					}
+					if(current != el.curIndex){
+						if(current == max){
+							src.parentNode.appendChild(src);
+						}else{
+							if(delta.y - p.overcrossing > 0){
+								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+							}
+							if(delta.y - p.overcrossing < 0){
+								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+							}
+						}
+						el.curIndex = current;
 						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.top + p.lim.borderY/2;
 						this.getGrid(p);
 					}
@@ -213,37 +259,43 @@ $.fn.extend({
 					}
 					return val;
 				}
+				var
+					result = {//we dont use val, because we should have abillity not to rewrite it
+						x: val.x,
+						y: val.y
+					};
+					
 				if(el.scope == el.dragEl.parentNode){
 					if(0 > val.x){
-						val.x = 0;
+						result.x = 0;
 					}
 					if(p.lim.width - el.dragEl.offsetWidth < val.x){
-						val.x = p.lim.width - el.dragEl.offsetWidth
+						result.x = p.lim.width - el.dragEl.offsetWidth
 					}
 					if(0 > val.y){
-						val.y = 0;
+						result.y = 0;
 					}
 					if(p.lim.height - el.dragEl.offsetHeight < val.y){
-						val.y = p.lim.height - el.dragEl.offsetHeight;
+						result.y = p.lim.height - el.dragEl.offsetHeight;
 					}
 				}else{
 					if(p.lim.left > val.x){
-						val.x = p.lim.left;
+						result.x = p.lim.left;
 					}
 					if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth < val.x){
-						val.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth
+						result.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth
 					}
 					if(p.lim.top > val.y){
-						val.y = p.lim.top;
+						result.y = p.lim.top;
 					}
 					if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight < val.y){
-						val.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight;
+						result.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight;
 					}
 				}
 				if(axis){
-					return val[axis];
+					return result[axis];
 				}
-				return val;
+				return result;
 			},
 			inRange: function(val, p, x){
 				if(!p || !p.scope){
@@ -283,11 +335,11 @@ $.fn.extend({
 					el.dragEl.style.top = pos.y + 'px';
 					return;
 				}
-				if(!p.leftScope){
-					this.checkOriginPosition(pos, p);
-				}
 				if(p.leaveScope){
 					this.checkLeftScope(pos, p);
+				}
+				if(!p.leftScope){
+					this.checkOriginPosition(pos, p);
 				}
 				if(this.inRange(pos, p, true)){
 					el.dragEl.style.left = pos.x + 'px';
@@ -323,12 +375,21 @@ $.fn.extend({
 		return this.each(function(){
 			var
 				$el = $(this),
-				el = this;
+					el = this,
+					lock,
+					ll,
+					l = 0;
 			$el.on('mousedown',function(e){
 				if(!window.SFDCaptured){
 					if(p.lock){
-						if($el.hasClass(p.lock)){
-							return;
+						lock = p.lock.split(' ');
+						ll = lock.length;
+						if(ll){
+							for(l = 0; l < ll; l++){
+								if($el.hasClass(lock[l])){
+									return;
+								}
+							}
 						}
 					}
 					el.ableToDrag = true;
@@ -376,7 +437,7 @@ $.fn.extend({
 						}
 						$(el).FD_().start(e,p);
 						if(p && p.onDragStart && typeof(p.onDragStart) == 'function'){
-							p.onDragStart(el.dragEl);
+								p.onDragStart(el);
 						}
 						if(p.defferedMove){
 							$(el).FD_().moveAt(p.defferedMove, p, true);

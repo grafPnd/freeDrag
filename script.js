@@ -16,7 +16,31 @@ $(function(){
 		.removeClass('iconDown').addClass('iconRight')
 		.parents('.j_group').find('.j_subgroup').addClass('s_hidden');
 	}
-  
+	$('.j_topmenuItem').SbmFreeDrag({
+		lock: 'j_locked',
+		scope: 'parent',
+		leaveScope: 'y',// 'x' || 'y' || 'x,y'
+		sortable: 'x',// 'x' || 'y' || 'x,y'
+		onLeaveScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl;
+			p.leaveScope = 'x,y';
+			// console.log('element has left scope',el, p);
+		},
+		onReachScope: function(el, p){
+			var
+				src = el,
+				dragEl = el.dragEl;
+			p.leaveScope = 'y';
+			// console.log('element has reached scope',el);
+		},
+		onDragEnd: function(el,p){
+			if(p.leftScope){
+				el.parentNode.removeChild(el);
+			}
+		}
+	});
   
 	$('.j_trayItem').SbmFreeDrag({
 		sourceCopy: true,
