@@ -20,8 +20,14 @@ $.fn.extend({
 					el.runtime.shiftX = el.dragEl.clientWidth/2;
 					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
+				if(d.maxChildren !== undefined){
+					p.maxChildren = d.maxChildren;
+				}
 				if(d.insert){
-						p.inserted = d && d.nsrc ? d.nsrc : el.dragEl.cloneNode();
+					p.inserted = d && d.nsrc ? d.nsrc : el.dragEl.cloneNode();
+					if(p.maxChildren !== undefined && el.destScope.childNodes.length){
+						console.log(p.maxChildren, el.destScope.childNodes.length)
+					}
 					el.destScope.appendChild(p.inserted);
 					if(typeof(d.srcMod) == 'function'){
 						d.srcMod(p.inserted,el.dragEl);
@@ -145,29 +151,51 @@ $.fn.extend({
 			},
 			checkLeftScope: function(pos, p, dest){
 				var
-					left;
+					left,
+					reached = true;
 				if(/x/.test(p.leaveScope)){
 					if(pos.x > p.lim.width || pos.x + el.dragEl.offsetWidth < 0){
 						left = true;
 					}
-				}
-				if(/y/.test(p.leaveScope)){
-					if(pos.y + el.dragEl.offsetHeight < 0 || pos.y > p.lim.height){
-						left = true;
+					if(pos.x + el.dragEl.offsetWidth > p.lim.width || pos.x < 0){
+						reached = false;
 					}
 				}
-				if(left){
+				if(/y/.test(p.leaveScope)){
+					if(pos.y > p.lim.height || pos.y + el.dragEl.offsetHeight < 0){
+						left = true;
+					}
+					if(pos.y + el.dragEl.offsetHeight > p.lim.height || pos.y  < 0){
+						reached = false;
+					}
+				}
+				if(reached){//element has completely reached scope
+					if(!p.reachScope){
+						p.reachScope = true;
+						if(p && p.onReachScope && typeof(p.onReachScope) == 'function'){
+							p.onReachScope(el, p);
+						}
+					}
+				}else{//element has started to go out scope
+					if(p.reachScope){
+						p.reachScope = false;
+						if(p && p.onLeavingScope && typeof(p.onLeavingScope) == 'function'){
+							p.onLeavingScope(el, p);
+						}
+					}
+				}
+				if(left){//element has completely left scope
 					if(!p.leftScope){
 						p.leftScope = true;
 						if(p && p.onLeaveScope && typeof(p.onLeaveScope) == 'function'){
 							p.onLeaveScope(el, p);
 						}
 					}
-				}else{
+				}else{//element has started to go over scope
 					if(p.leftScope){
 						p.leftScope = false;
-						if(p && p.onReachScope && typeof(p.onReachScope) == 'function'){
-							p.onReachScope(el, p);
+						if(p && p.onReachingScope && typeof(p.onReachingScope) == 'function'){
+							p.onReachingScope(el, p);
 						}
 					}
 				}
@@ -412,7 +440,7 @@ $.fn.extend({
 					if(el.dragStarted){
 						el.dragStarted = false;
 						if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
-							p.onDragEnd(el,p);
+							p.onDragEnd(el, p);
 						}
 					}
 					p.inserted = null;
@@ -436,7 +464,7 @@ $.fn.extend({
 						}
 						$(el).FD_().start(e,p);
 						if(p && p.onDragStart && typeof(p.onDragStart) == 'function'){
-								p.onDragStart(el);
+								p.onDragStart(el, p);
 						}
 						if(p.defferedMove){
 							$(el).FD_().moveAt(p.defferedMove, p, true);

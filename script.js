@@ -16,175 +16,205 @@ $(function(){
 		.removeClass('iconDown').addClass('iconRight')
 		.parents('.j_group').find('.j_subgroup').addClass('s_hidden');
 	}
+	var
+		topMenuHelper = {
+			onLeaveScope: function(el, p){
+				var
+					src = el,
+					dragEl = el.dragEl,
+					altSrc = p.inserted || src;
+				if(altSrc){
+					$(altSrc).addClass('s_hidden');
+				};
+				p.leaveScope = 'x,y';
+			},
+			onReachingScope: function(el, p){
+				var
+					src = el,
+					dragEl = el.dragEl,
+					altSrc = p.inserted || src;
+				if(altSrc){
+					$(altSrc).removeClass('s_hidden');
+				}
+			},
+			onDragEnd: function(el,p){
+				p.leaveScope = 'y';
+				if(p.leftScope){
+					el.parentNode.removeChild(el);
+				}
+			}
+		},
+		leftMenuHelper = {
+			onLeaveScope: function(el, p){
+				var
+					src = el,
+					dragEl = el.dragEl,
+					altSrc = p.inserted || src;
+				if(altSrc){
+					$(altSrc).addClass('s_hidden');
+				};
+				p.leaveScope = 'x,y';
+			},
+			onReachingScope: function(el, p){
+				var
+					src = el,
+					dragEl = el.dragEl,
+					altSrc = p.inserted || src;
+				if(altSrc){
+					$(altSrc).removeClass('s_hidden');
+				}
+			},
+			onDragEnd: function(el,p){
+				p.leaveScope = 'x';
+				if(p.leftScope){
+					el.parentNode.removeChild(el);
+				}
+			}
+		},
+		trayHelper = {
+			onDragStart2: function(target){
+				$(window).trigger('setDragScope',{
+					scope: target[0],
+					maxChildren: 6,
+					insert: true,
+					center: true,
+					sortable: 'x',
+					dragMod: function(el){
+						$(el)
+						.addClass('topmenuItem')
+						.removeClass('trayItem');
+					},
+					srcMod: function(src, drag){
+						$(src)
+							.css({
+								top: '0px',
+								left: '0px',
+								margin: '10px',
+								zIndex: 1,
+								opacity: 0
+							})
+							.removeClass('trayItem s_noselect')
+							.addClass('s_lwb topmenuItem j_topmenuItem')
+							.html(drag.innerHTML)
+							.SbmFreeDrag({
+								lock: 'j_locked',
+								scope: 'parent',
+								leaveScope: 'y',
+								sortable: 'x',
+								onLeaveScope: topMenuHelper.onLeaveScope,
+								onReachingScope: topMenuHelper.onReachingScope,
+								onDragEnd: topMenuHelper.onDragEnd
+							});
+					},
+					srcPasted: function(src){
+						$(src).addClass('s_hidden');
+					}
+				});
+			},
+			onDragStart: function(target){
+				expand(target);
+				$(window).trigger('setDragScope',{
+					scope: target.parents('.j_listItem').find('.j_subgroup')[0],
+					insert: true,
+					center: true,
+					sortable: 'y',
+					dragMod: function(el){
+						var
+							$el = $(el);
+						$el.css({
+							height: '30px',
+							width: '200px'
+						});
+					},
+					srcMod: function(src, drag){
+						$(src)
+							.css({
+								top: '0px',
+								left: '0px',
+								zIndex: 1,
+								opacity: 0
+							})
+							.removeClass('trayItem s_noselect')
+							.addClass('s_string menuItem submenuItem j_SubListItem')
+							.html(drag.innerHTML)
+							.SbmFreeDrag({
+								lock: 'j_locked',
+								scope: 'parent',
+								leaveScope: 'x',
+								sortable: 'y',
+								onLeaveScope: leftMenuHelper.onLeaveScope,
+								onReachingScope: leftMenuHelper.onReachingScope,
+								onDragEnd: leftMenuHelper.onDragEnd
+							});
+					},
+					srcPasted: function(src){
+						$(src).addClass('s_hidden');
+					}
+				});
+				target.parents('.j_listItem').find('.j_subgroup').addClass('highlightedBlock');
+			},
+			onDragEnd: function(el,p){
+				var
+					target = $('.j_handler[data-rel=' + $(el).data('rel') + ']');
+				if(!p.leftScope){
+					if(p.inserted){
+						p.inserted.style.opacity = 1;
+					}
+					// $(el).addClass('j_locked');
+				}else{
+					if(p.inserted){
+						p.inserted.parentNode.removeChild(p.inserted);
+					}
+					// $(el).removeClass('j_locked');
+					collapse(target);
+				}
+				$(window).trigger('removeDragScope');
+				target.parents('.j_listItem').find('.j_subgroup').removeClass('highlightedBlock');
+			}
+		};
+		
 	$('.j_topmenuItem').SbmFreeDrag({
 		lock: 'j_locked',
 		scope: 'parent',
-		leaveScope: 'y',// 'x' || 'y' || 'x,y'
-		sortable: 'x',// 'x' || 'y' || 'x,y'
-		onLeaveScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl;
-			p.leaveScope = 'x,y';
-			// console.log('element has left scope',el, p);
-		},
-		onReachScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl;
-			p.leaveScope = 'y';
-			// console.log('element has reached scope',el);
-		},
-		onDragEnd: function(el,p){
-			if(p.leftScope){
-				el.parentNode.removeChild(el);
-			}
-		}
+		leaveScope: 'y',
+		sortable: 'x',
+		onLeaveScope: topMenuHelper.onLeaveScope,
+		onReachingScope: topMenuHelper.onReachingScope,
+		onDragEnd: topMenuHelper.onDragEnd
 	});
-  
 	$('.j_trayItem').SbmFreeDrag({
 		sourceCopy: true,
 		lock: 'j_locked',
-		leaveScope: 'x,y',// 'x' || 'y' || 'x,y'
+		leaveScope: 'x,y',
 		onDragStart: function(node){
-			// console.log('draging has been started',node); 
 			var
-				rel = $(node).data('rel'),
-				target = $('.j_handler[data-rel=' + rel + ']');
-			expand(target);
-			$(window).trigger('setDragScope',{
-				scope: target.parents('.j_listItem').find('.j_subgroup')[0],
-				insert: true,
-				center: true,
-				sortable: 'y',// 'x' || 'y' || 'x,y'
-				dragMod: function(el){
-					var
-						$el = $(el);
-					$el.css({
-						height: '30px',
-						width: '200px'
-					});
-				},
-				srcMod: function(src, drag){
-					$(src)
-						.css({
-							top: '0px',
-							left: '0px',
-							zIndex: 1,
-							opacity: 0
-						})
-						.removeClass('trayItem s_noselect')
-						.addClass('s_string menuItem submenuItem j_SubListItem')
-						.html(drag.innerHTML)
-						.SbmFreeDrag({
-							lock: 'j_locked',
-							scope: 'parent',
-							leaveScope: 'x',// 'x' || 'y' || 'x,y'
-							sortable: 'y',// 'x' || 'y' || 'x,y'
-							onLeaveScope: function(el, p){
-								var
-									src = el,
-									dragEl = el.dragEl;
-								p.leaveScope = 'x,y';
-								// console.log('element has left scope', el, p);
-							},
-							onReachScope: function(el, p){
-								var
-									src = el,
-									dragEl = el.dragEl;
-								p.leaveScope = 'x';
-								// console.log('element has reached scope', el, p);
-							},
-							onDragEnd: function(el,p){
-								if(p.leftScope){
-									$(drag.origin).removeClass('j_locked');
-									el.parentNode.removeChild(el);
-								}
-							}
-						});
-				},
-				srcPasted: function(src){
-					$(src).addClass('s_hidden');
-				}
-			});
-			target.parents('.j_listItem').find('.j_subgroup').addClass('highlightedBlock');
+				lMenuHandler = $('.j_handler[data-rel=' + $(node).data('rel') + ']'),
+				topMenu = $('.j_topmenu[data-rel=' + $(node).data('rel') + ']');
+			if(lMenuHandler.length){
+				trayHelper.onDragStart(lMenuHandler);
+			}
+			if(topMenu.length){
+				trayHelper.onDragStart2(topMenu);
+			}
 		}, 
-		onLeaveScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl,
-				altSrc = p.inserted;
-			if(altSrc){
-				$(altSrc).addClass('s_hidden');
-			}
-			// console.log('element has left scope',el, p.leftScope);
-		},
-		onReachScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl,
-				altSrc = p.inserted;
-			// console.log('el has reached destination',el,p.leftScope)
-			if(altSrc){
-				$(altSrc).removeClass('s_hidden');
-			}
-		},
-		onDragEnd: function(el,p){
-			// console.log('draging has been ended',el,p.leftScope);
-			var
-				rel = $(el).data('rel'),
-				target = $('.j_handler[data-rel=' + rel + ']');
-			if(!p.leftScope){
-				if(p.inserted){
-					p.inserted.style.opacity = 1;
-				}
-				$(el).addClass('j_locked');
-			}else{
-				if(p.inserted){
-					p.inserted.parentNode.removeChild(p.inserted);
-				}
-				collapse(target);
-			}
-			$(window).trigger('removeDragScope');
-			target.parents('.j_listItem').find('.j_subgroup').removeClass('highlightedBlock');
-		}
+		onLeaveScope: leftMenuHelper.onLeaveScope,
+		onReachingScope: leftMenuHelper.onReachingScope,
+		onDragEnd: trayHelper.onDragEnd
 	}); 
 	$('.j_listItem').SbmFreeDrag({	
 		lock: 'j_locked',
 		scope: 'parent',
-		sortable: 'y',// 'x' || 'y' || 'x,y'
-		overcrossing: 5,// 5px overcrossing before replacement happens
-		sensitivity: 5,// 5px precision before dag will start, less then 5 px cursor delta ignores
-		onDragStart: function(node){
-			// console.log('draging has been started',node);
-		},
-		onDragEnd: function(node){//drop element
-			// console.log('draging has been ended',node);
-		}
+		sortable: 'y',
+		overcrossing: 5,
+		sensitivity: 5
 	});
 	$('.j_SubListItem').SbmFreeDrag({
 		lock: 'j_locked',
 		scope: 'parent',
-		leaveScope: 'x',// 'x' || 'y' || 'x,y'
-		sortable: 'y',// 'x' || 'y' || 'x,y'
-		onLeaveScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl;
-			p.leaveScope = 'x,y';
-			// console.log('element has left scope',el, p);
-		},
-		onReachScope: function(el, p){
-			var
-				src = el,
-				dragEl = el.dragEl;
-			p.leaveScope = 'x';
-			// console.log('element has reached scope',el);
-		},
-		onDragEnd: function(el,p){
-			if(p.leftScope){
-				el.parentNode.removeChild(el);
-			}
-		}
+		leaveScope: 'x',
+		sortable: 'y',
+		onLeaveScope: leftMenuHelper.onLeaveScope,
+		onReachingScope: leftMenuHelper.onReachingScope,
+		onDragEnd: leftMenuHelper.onDragEnd
 	});
 });
