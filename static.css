@@ -16,6 +16,7 @@
     overflow: hidden !important;
     margin:0px!important;
     padding:0px!important;
+	border:none!important;
 	resize: none!important;/*for textareas*/
 }
 .s_pointer {

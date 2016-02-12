@@ -29,6 +29,7 @@ $.fn.extend({
 					if(p.maxItems !== undefined && el.friends && el.friends.length){
 						if(p.maxItems <= el.friends.length){
 							el.dragEl.isExtra = true;
+							$(p.inserted).addClass('s_minimized');
 						}
 					}
 					el.destScope.appendChild(p.inserted);
@@ -209,10 +210,10 @@ $.fn.extend({
 					return;
 				}
 				var
-					max = p.grid.inc.length - 1,
+					max = el.dragEl.isExtra ? p.grid.inc.length - 2 : p.grid.inc.length - 1,
 					i = max,
 					current = el.curIndex,
-					delta = {
+					delta = {//this delta should recalculate after rebuild
 						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.left + p.lim.borderX/2)),
 						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2))
 					},
@@ -221,7 +222,11 @@ $.fn.extend({
 					for(i = max; i >= 0; i--){
 						if(delta.x - p.overcrossing > 0){
 							if(pos.x + src.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
-								current = i ? i - 1 : i;
+								if(p.grid.stack[i] == src){
+									current = i ;
+								}else{
+									current = i ? i - 1 : i;
+								}
 							}
 						}
 						if(delta.x + p.overcrossing < 0){
@@ -233,21 +238,41 @@ $.fn.extend({
 								}
 							}
 						}
+						if(el.dragEl.isExtra){//TODO: fix conditions
+							if(el.dragEl.delta.x > 0){
+								if(pos.x + el.dragEl.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
+									current = i ;
+									console.log('+')
+								}
+							}
+							if(el.dragEl.delta.x < 0){
+								if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing - p.grid.src[i].x ){
+									current = i ? i - 1 : i;
+									console.log('-')
+								}
+							}
+						}
 					}
 					if(pos.x + src.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
 						current = max;
 					}
-					if(current != el.curIndex){
-						var c = delta.x + p.overcrossing < 0 ? current + 1 : current;//tmp
-						console.log('rebuild',el.curIndex,'to',c,!!el.dragEl.isExtra)//if extra-> get out one of el.friends (prev or next)
-						if(current == max){
-								src.parentNode.appendChild(src);
-						}else{
-							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+					if(el.dragEl.isExtra){
+						if(el.dragEl.delta.x !== 0){
+							current = current > max ? max : current;
+							$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate');
+							$(p.grid.stack[current]).addClass('j_fDnDcandidate').css({opacity:0.2});
 						}
-						el.curIndex = current;
-						el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.left + p.lim.borderX/2;
-						this.getGrid(p);
+					}else{
+						if(current != el.curIndex){
+							if(current == max){
+									src.parentNode.appendChild(src);
+							}else{
+								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
+							}
+							el.curIndex = current;
+							el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.left + p.lim.borderX/2;
+							this.getGrid(p);
+						}
 					}
 				}
 				if(/y/.test(p.sortable)){
@@ -370,6 +395,8 @@ $.fn.extend({
 				}
 				if(!p.leftScope){
 					this.checkOriginPosition(pos, p);
+				}else{
+					$(el.friends).css({opacity:1});
 				}
 				if(this.inRange(pos, p, true)){
 					el.dragEl.style.left = pos.x + 'px';
@@ -383,6 +410,11 @@ $.fn.extend({
 					pos.y = this.toRange(pos, p, 'y');
 					el.dragEl.style.top = pos.y + 'px';
 				}
+				el.dragEl.delta = {
+					x: pos.x - (el.dragEl.runtime ? el.dragEl.runtime.x : 0),
+					y: pos.y - (el.dragEl.runtime ? el.dragEl.runtime.y : 0)
+				}
+				el.dragEl.runtime = pos;
 			},
 			getCoords: function(node){
 				var 
@@ -436,6 +468,10 @@ $.fn.extend({
 					el.ableToDrag = false;
 					p.defferedMove = false;
 					el.style.opacity = 1;
+					if(el.dragEl.isExtra){
+						$(p.inserted).removeClass('s_minimized');
+						$('.j_fDnDcandidate')[0].parentNode.replaceChild(p.inserted,$('.j_fDnDcandidate')[0]);
+					}
 					if(el.dragStarted){
 						el.dragEl.parentNode.removeChild(el.dragEl);
 						el.dragEl = null;
