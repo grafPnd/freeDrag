@@ -29,7 +29,6 @@ $.fn.extend({
 					if(p.maxItems !== undefined && el.friends && el.friends.length){
 						if(p.maxItems <= el.friends.length){
 							el.dragEl.isExtra = true;
-							console.log('ofl');
 						}
 					}
 					el.destScope.appendChild(p.inserted);
@@ -212,13 +211,13 @@ $.fn.extend({
 				var
 					max = p.grid.inc.length - 1,
 					i = max,
-					current = el.curIndex,//index of transparent element
+					current = el.curIndex,
 					delta = {
 						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.left + p.lim.borderX/2)),
 						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2))
 					},
 					src = p.inserted || el;
-				if(/x/.test(p.sortable)){			
+				if(/x/.test(p.sortable)){	
 					for(i = max; i >= 0; i--){
 						if(delta.x - p.overcrossing > 0){
 							if(pos.x + src.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
@@ -239,7 +238,8 @@ $.fn.extend({
 						current = max;
 					}
 					if(current != el.curIndex){
-						console.log('rebuild',el.curIndex,'to',current,el.dragEl.isExtra)//if extra-> get out one of friends (prev or next)
+						var c = delta.x + p.overcrossing < 0 ? current + 1 : current;//tmp
+						console.log('rebuild',el.curIndex,'to',c,!!el.dragEl.isExtra)//if extra-> get out one of el.friends (prev or next)
 						if(current == max){
 								src.parentNode.appendChild(src);
 						}else{
