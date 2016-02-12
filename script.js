@@ -24,7 +24,7 @@ $(function(){
 					dragEl = el.dragEl,
 					altSrc = p.inserted || src;
 				if(altSrc){
-					$(altSrc).addClass('s_hidden');
+					// $(altSrc).addClass('s_hidden');
 				};
 				p.leaveScope = 'x,y';
 			},
@@ -34,7 +34,7 @@ $(function(){
 					dragEl = el.dragEl,
 					altSrc = p.inserted || src;
 				if(altSrc){
-					$(altSrc).removeClass('s_hidden');
+					// $(altSrc).removeClass('s_hidden');
 				}
 			},
 			onDragEnd: function(el,p){
@@ -51,7 +51,7 @@ $(function(){
 					dragEl = el.dragEl,
 					altSrc = p.inserted || src;
 				if(altSrc){
-					$(altSrc).addClass('s_hidden');
+					// $(altSrc).addClass('s_hidden');
 				};
 				p.leaveScope = 'x,y';
 			},
@@ -61,7 +61,7 @@ $(function(){
 					dragEl = el.dragEl,
 					altSrc = p.inserted || src;
 				if(altSrc){
-					$(altSrc).removeClass('s_hidden');
+					// $(altSrc).removeClass('s_hidden');
 				}
 			},
 			onDragEnd: function(el,p){
@@ -75,7 +75,8 @@ $(function(){
 			onDragStart2: function(target){
 				$(window).trigger('setDragScope',{
 					scope: target[0],
-					maxChildren: 6,
+					maxItems: 6,
+					nsrc: document.createElement('div'),
 					insert: true,
 					center: true,
 					sortable: 'x',
@@ -87,8 +88,6 @@ $(function(){
 					srcMod: function(src, drag){
 						$(src)
 							.css({
-								top: '0px',
-								left: '0px',
 								margin: '10px',
 								zIndex: 1,
 								opacity: 0
@@ -107,7 +106,7 @@ $(function(){
 							});
 					},
 					srcPasted: function(src){
-						$(src).addClass('s_hidden');
+						// $(src).addClass('s_hidden');
 					}
 				});
 			},
@@ -148,7 +147,7 @@ $(function(){
 							});
 					},
 					srcPasted: function(src){
-						$(src).addClass('s_hidden');
+						// $(src).addClass('s_hidden');
 					}
 				});
 				target.parents('.j_listItem').find('.j_subgroup').addClass('highlightedBlock');

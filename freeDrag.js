@@ -12,6 +12,7 @@ $.fn.extend({
 					}
 				el.destScope = d.scope;
 				p.sortable = d.sortable;
+				el.friends = $(el.destScope).children();
 				el.destScope.appendChild(el.dragEl);
 				if(typeof(d.dragMod) == 'function'){
 					d.dragMod(el.dragEl);
@@ -20,13 +21,16 @@ $.fn.extend({
 					el.runtime.shiftX = el.dragEl.clientWidth/2;
 					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
-				if(d.maxChildren !== undefined){
-					p.maxChildren = d.maxChildren;
+				if(d.maxItems !== undefined){
+					p.maxItems = d.maxItems;
 				}
 				if(d.insert){
 					p.inserted = d && d.nsrc ? d.nsrc : el.dragEl.cloneNode();
-					if(p.maxChildren !== undefined && el.destScope.childNodes.length){
-						console.log(p.maxChildren, el.destScope.childNodes.length)
+					if(p.maxItems !== undefined && el.friends && el.friends.length){
+						if(p.maxItems <= el.friends.length){
+							el.dragEl.isExtra = true;
+							console.log('ofl');
+						}
 					}
 					el.destScope.appendChild(p.inserted);
 					if(typeof(d.srcMod) == 'function'){
@@ -84,7 +88,7 @@ $.fn.extend({
 					'margin': '0px'
 				});
 				if(!p.sourceCopy){
-					el.style.opacity = 0;
+					el.style.opacity = 0.5;
 				}
 				el.dragStarted = true;
 				$(document.body).children().addClass('s_noselect');
@@ -214,16 +218,20 @@ $.fn.extend({
 						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2))
 					},
 					src = p.inserted || el;
-				if(/x/.test(p.sortable)){				
+				if(/x/.test(p.sortable)){			
 					for(i = max; i >= 0; i--){
 						if(delta.x - p.overcrossing > 0){
 							if(pos.x + src.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
-								current = i - 1;
+								current = i ? i - 1 : i;
 							}
 						}
 						if(delta.x + p.overcrossing < 0){
 							if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing){
-								current = i - 1;
+								if(p.grid.stack[i] == src){
+									current = i ;
+								}else{
+									current = i - 1 ;
+								}
 							}
 						}
 					}
@@ -231,15 +239,11 @@ $.fn.extend({
 						current = max;
 					}
 					if(current != el.curIndex){
+						console.log('rebuild',el.curIndex,'to',current,el.dragEl.isExtra)//if extra-> get out one of friends (prev or next)
 						if(current == max){
-							src.parentNode.appendChild(src);
+								src.parentNode.appendChild(src);
 						}else{
-							if(delta.x - p.overcrossing > 0){
-								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
-							}
-							if(delta.x - p.overcrossing < 0){
-								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
-							}
+							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 						}
 						el.curIndex = current;
 						el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.left + p.lim.borderX/2;
@@ -250,12 +254,16 @@ $.fn.extend({
 					for(i = max; i >= 0; i--){
 						if(delta.y - p.overcrossing > 0){
 							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].mTop + p.grid.src[i].y + p.overcrossing){
-								current = i - 1;
+								current =  i ? i - 1 : i;
 							}
 						}
 						if(delta.y + p.overcrossing < 0){
 							if(pos.y <= p.grid.inc[i].y + p.grid.src[i].mTop - p.overcrossing){
-								current = i - 1;
+								if(p.grid.stack[i] == src){
+									current = i ;
+								}else{
+									current = i - 1 ;
+								}
 							}
 						}
 					}
@@ -266,12 +274,7 @@ $.fn.extend({
 						if(current == max){
 							src.parentNode.appendChild(src);
 						}else{
-							if(delta.y - p.overcrossing > 0){
-								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
-							}
-							if(delta.y - p.overcrossing < 0){
-								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
-							}
+							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 						}
 						el.curIndex = current;
 						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.top + p.lim.borderY/2;
@@ -436,8 +439,7 @@ $.fn.extend({
 					if(el.dragStarted){
 						el.dragEl.parentNode.removeChild(el.dragEl);
 						el.dragEl = null;
-					}
-					if(el.dragStarted){
+						el.friends = null;
 						el.dragStarted = false;
 						if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
 							p.onDragEnd(el, p);
