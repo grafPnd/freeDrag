@@ -88,7 +88,7 @@ $.fn.extend({
 					'margin': '0px'
 				});
 				if(!p.sourceCopy){
-					el.style.opacity = 0.5;
+					el.style.opacity = 0;
 				}
 				el.dragStarted = true;
 				$(document.body).children().addClass('s_noselect');
@@ -210,6 +210,10 @@ $.fn.extend({
 					return;
 				}
 				var
+					leftDepth = 0,
+					rightDepth = 0,
+					lcurrent = 0,
+					rcurrent = 0,
 					max = el.dragEl.isExtra ? p.grid.inc.length - 2 : p.grid.inc.length - 1,
 					i = max,
 					current = el.curIndex,
@@ -238,30 +242,62 @@ $.fn.extend({
 								}
 							}
 						}
-						if(el.dragEl.isExtra){//TODO: fix conditions
+						if(el.dragEl.isExtra){
+							p.overcrossing = 0;
 							if(el.dragEl.delta.x > 0){
-								if(pos.x + el.dragEl.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
-									current = i ;
-									console.log('+')
+								if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft){
+									current = i  ;
+									i = 0;
 								}
 							}
 							if(el.dragEl.delta.x < 0){
-								if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing - p.grid.src[i].x ){
-									current = i ? i - 1 : i;
-									console.log('-')
+								if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x - p.overcrossing ){
+									current = i;
+								}
+							}
+							if(el.dragEl.delta.x == 0){
+								if(pos.x + (el.dragEl.offsetWidth / 2)  >= p.grid.inc[i].x + p.grid.src[i].mLeft  && pos.x + (el.dragEl.offsetWidth / 2) <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){//center in some elements range
+									current = i;
+									i = 0;
+								}else{//center is not in any element
+									if(!rcurrent && pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x + el.dragEl.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){// right side insight
+										rcurrent = i;
+										rightDepth = (pos.x + el.dragEl.offsetWidth) - (p.grid.inc[i].x + p.grid.src[i].mLeft);
+									}
+									if(!lcurrent && pos.x >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){
+										lcurrent = i;										
+										leftDepth =  (p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x) - pos.x;
+									}
+									if(rightDepth && leftDepth){//left and right edges are inside elements 
+										if(rightDepth > leftDepth){//right side is deeper inside
+											current = rcurrent;
+										}else{
+											current = lcurrent;
+										}
+									}else{
+										if(rightDepth){// right side insight
+											current = rcurrent;
+										}else{//left side inside
+											current = lcurrent;
+										}
+									}
 								}
 							}
 						}
 					}
-					if(pos.x + src.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
-						current = max;
+					if(el.dragEl.isExtra){
+						if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
+							current = max ;
+						}
+					}else{
+						if(pos.x + src.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
+							current = max;
+						}
 					}
 					if(el.dragEl.isExtra){
-						if(el.dragEl.delta.x !== 0){
-							current = current > max ? max : current;
-							$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate');
-							$(p.grid.stack[current]).addClass('j_fDnDcandidate').css({opacity:0.2});
-						}
+						current = current > max ? max : current;
+						$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate');
+						$(p.grid.stack[current]).addClass('j_fDnDcandidate').css({opacity:0});
 					}else{
 						if(current != el.curIndex){
 							if(current == max){
@@ -396,7 +432,7 @@ $.fn.extend({
 				if(!p.leftScope){
 					this.checkOriginPosition(pos, p);
 				}else{
-					$(el.friends).css({opacity:1});
+					$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate')
 				}
 				if(this.inRange(pos, p, true)){
 					el.dragEl.style.left = pos.x + 'px';
@@ -464,16 +500,26 @@ $.fn.extend({
 			});
 			$(window.top)
 			.on('mouseup',function(){
+				var
+					extraEl = $('.j_fDnDcandidate')[0];
 				if(el.ableToDrag){
 					el.ableToDrag = false;
 					p.defferedMove = false;
 					el.style.opacity = 1;
 					if(el.dragEl.isExtra){
-						$(p.inserted).removeClass('s_minimized');
-						$('.j_fDnDcandidate')[0].parentNode.replaceChild(p.inserted,$('.j_fDnDcandidate')[0]);
+						if(extraEl){//DnD is placed in scope
+							$(p.inserted).removeClass('s_minimized');
+							extraEl.parentNode.replaceChild(p.inserted, extraEl);
+						}else{
+							if(p.inserted){
+								p.inserted.parentNode.removeChild(el.dragEl);
+							}
+						}
 					}
 					if(el.dragStarted){
-						el.dragEl.parentNode.removeChild(el.dragEl);
+						if(el.dragEl && el.dragEl.parentNode){
+							el.dragEl.parentNode.removeChild(el.dragEl);
+						}
 						el.dragEl = null;
 						el.friends = null;
 						el.dragStarted = false;
