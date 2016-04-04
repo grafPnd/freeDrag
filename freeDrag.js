@@ -13,7 +13,8 @@ $.fn.extend({
 				el.destScope = d.scope;
 				p.sortable = d.sortable;
 				el.friends = $(el.destScope).children();
-				el.destScope.appendChild(el.dragEl);
+				// el.destScope.appendChild(el.dragEl);
+				window.top.document.body.appendChild(el.dragEl);
 				if(typeof(d.dragMod) == 'function'){
 					d.dragMod(el.dragEl);
 				}
@@ -29,7 +30,7 @@ $.fn.extend({
 					if(p.maxItems !== undefined && el.friends && el.friends.length){
 						if(p.maxItems <= el.friends.length){
 							el.dragEl.isExtra = true;
-							$(p.inserted).addClass('s_minimized');
+							$(p.inserted).addClass('s_minimized s_noboard');
 						}
 					}
 					el.destScope.appendChild(p.inserted);
@@ -51,13 +52,14 @@ $.fn.extend({
 				}
 				el.dragEl.style.left = el.runtime.startX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2 + 'px';
 				el.dragEl.style.top = el.runtime.startY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2 + 'px';
+				//TODO: or set defferedMove 
 			},
 			start: function(e,p){
 				var
 					coords,
 					computed = getComputedStyle(el);
 				p.overcrossing = p.overcrossing || 0;
-					p.sensitivity = p.sensitivity || 1;
+				p.sensitivity = p.sensitivity || 1;
 				el.scope = (p && p.scope) ? p.scope == 'parent' ? el.parentNode : p.scope.length ? p.scope[0] : p.scope : window.top.document.body;
 				this.getLim(p);
 				coords = this.getCoords();
@@ -71,7 +73,8 @@ $.fn.extend({
 				el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
 				el.$dragEl = $(el.dragEl);
 				el.dragEl.innerHTML = el.innerHTML;
-				el.scope.appendChild(el.dragEl);
+				// el.scope.appendChild(el.dragEl);
+				window.top.document.body.appendChild(el.dragEl);
 				el.dragEl.origin = el;
 				el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
 				if(p.sortable){
@@ -244,18 +247,18 @@ $.fn.extend({
 						}
 						if(el.dragEl.isExtra){
 							p.overcrossing = 0;
-							if(el.dragEl.delta.x > 0){
-								if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft){
-									current = i  ;
-									i = 0;
-								}
-							}
-							if(el.dragEl.delta.x < 0){
-								if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x - p.overcrossing ){
-									current = i;
-								}
-							}
-							if(el.dragEl.delta.x == 0){
+							// if(el.dragEl.delta.x > 0){
+								// if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft){
+									// current = i  ;
+									// i = 0;
+								// }
+							// }
+							// if(el.dragEl.delta.x < 0){
+								// if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x - p.overcrossing ){
+									// current = i;
+								// }
+							// }
+							// if(el.dragEl.delta.x == 0){
 								if(pos.x + (el.dragEl.offsetWidth / 2)  >= p.grid.inc[i].x + p.grid.src[i].mLeft  && pos.x + (el.dragEl.offsetWidth / 2) <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){//center in some elements range
 									current = i;
 									i = 0;
@@ -282,7 +285,7 @@ $.fn.extend({
 										}
 									}
 								}
-							}
+							// }
 						}
 					}
 					if(el.dragEl.isExtra){
@@ -298,6 +301,7 @@ $.fn.extend({
 						current = current > max ? max : current;
 						$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate');
 						$(p.grid.stack[current]).addClass('j_fDnDcandidate').css({opacity:0});
+						el.curIndex = current;
 					}else{
 						if(current != el.curIndex){
 							if(current == max){
@@ -357,19 +361,19 @@ $.fn.extend({
 					};
 					
 				if(el.scope == el.dragEl.parentNode){
-					if(0 > val.x){
-						result.x = 0;
+					if(p.lim.left > val.x){//left edge excessing
+						result.x = p.lim.left;
 					}
-					if(p.lim.width - el.dragEl.offsetWidth < val.x){
-						result.x = p.lim.width - el.dragEl.offsetWidth
+					if(p.lim.width - el.dragEl.offsetWidth < val.x - p.lim.left){//right edge excessing
+						result.x = p.lim.width - el.dragEl.offsetWidth + p.lim.left;
 					}
-					if(0 > val.y){
-						result.y = 0;
+					if(p.lim.top > val.y){//top edge excessing
+						result.y = p.lim.top;
 					}
-					if(p.lim.height - el.dragEl.offsetHeight < val.y){
-						result.y = p.lim.height - el.dragEl.offsetHeight;
+					if(p.lim.height - el.dragEl.offsetHeight < val.y - p.lim.top){//bottom edge excessing
+						result.y = p.lim.height - el.dragEl.offsetHeight + p.lim.top;
 					}
-				}else{
+				}else{//TODO:check if there is required to add lim.top/left
 					if(p.lim.left > val.x){
 						result.x = p.lim.left;
 					}
@@ -414,9 +418,16 @@ $.fn.extend({
 			},
 			moveAt: function(e, p, ultimate){
 				var
-					pos = {
-						x: e.pageX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2,
-						y: e.pageY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2
+					// pos = {
+						// x: e.pageX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2,
+						// y: e.pageY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2
+					// };
+					/*
+					check methods: toRange, checkLeftScope,checkOriginPosition,inRange
+					*/
+					 pos = {
+						x: e.pageX - el.runtime.shiftX - p.lim.borderX/2,
+						y: e.pageY - el.runtime.shiftY - p.lim.borderY/2
 					};
 				if((ultimate || !p.scope) && !el.destScope){
 					if(p.scope){
@@ -496,6 +507,7 @@ $.fn.extend({
 						pageY: e.pageY
 					}
 					window.SFDCaptured = true;
+					$('iframe').css('pointer-events', 'none');
 				}
 			});
 			$(window.top)
@@ -506,10 +518,12 @@ $.fn.extend({
 					el.ableToDrag = false;
 					p.defferedMove = false;
 					el.style.opacity = 1;
-					if(el.dragEl.isExtra){
+						el.replacedWithExtra = false;
+					if(el.dragEl && el.dragEl.isExtra){
 						if(extraEl){//DnD is placed in scope
-							$(p.inserted).removeClass('s_minimized');
+								$(p.inserted).removeClass('s_minimized s_noboard');
 							extraEl.parentNode.replaceChild(p.inserted, extraEl);
+								el.replacedWithExtra = true;
 						}else{
 							if(p.inserted){
 								p.inserted.parentNode.removeChild(el.dragEl);
@@ -529,6 +543,7 @@ $.fn.extend({
 					}
 					p.inserted = null;
 				}
+				$('iframe').css('pointer-events', 'auto');
 				if(window.SFDCaptured){
 					window.SFDCaptured = false;
 				}
