@@ -161,18 +161,18 @@ $.fn.extend({
 					left,
 					reached = true;
 				if(/x/.test(p.leaveScope)){
-					if(pos.x > p.lim.width || pos.x + el.dragEl.offsetWidth < 0){
+					if(pos.x > p.lim.width + p.lim.left || pos.x + el.dragEl.offsetWidth < p.lim.left){
 						left = true;
 					}
-					if(pos.x + el.dragEl.offsetWidth > p.lim.width || pos.x < 0){
+					if(pos.x + el.dragEl.offsetWidth > p.lim.width + p.lim.left || pos.x < p.lim.left){
 						reached = false;
 					}
 				}
 				if(/y/.test(p.leaveScope)){
-					if(pos.y > p.lim.height || pos.y + el.dragEl.offsetHeight < 0){
+					if(pos.y > p.lim.height + p.lim.top || pos.y + el.dragEl.offsetHeight < p.lim.top){
 						left = true;
 					}
-					if(pos.y + el.dragEl.offsetHeight > p.lim.height || pos.y  < 0){
+					if(pos.y + el.dragEl.offsetHeight > p.lim.height + p.lim.top || pos.y  < p.lim.top){
 						reached = false;
 					}
 				}
@@ -221,14 +221,14 @@ $.fn.extend({
 					i = max,
 					current = el.curIndex,
 					delta = {//this delta should recalculate after rebuild
-						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.left + p.lim.borderX/2)),
-						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.top + p.lim.borderY/2))
+						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.borderX/2)),
+						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.borderY/2))
 					},
 					src = p.inserted || el;
 				if(/x/.test(p.sortable)){	
 					for(i = max; i >= 0; i--){
 						if(delta.x - p.overcrossing > 0){
-							if(pos.x + src.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
+							if(pos.x + src.offsetWidth - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x + p.overcrossing){
 								if(p.grid.stack[i] == src){
 									current = i ;
 								}else{
@@ -237,7 +237,7 @@ $.fn.extend({
 							}
 						}
 						if(delta.x + p.overcrossing < 0){
-							if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing){
+							if(pos.x - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft - p.overcrossing){
 								if(p.grid.stack[i] == src){
 									current = i ;
 								}else{
@@ -248,28 +248,28 @@ $.fn.extend({
 						if(el.dragEl.isExtra){
 							p.overcrossing = 0;
 							// if(el.dragEl.delta.x > 0){
-								// if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft){
+								// if(pos.x + el.dragEl.offsetWidth - p.lim.left >= p.grid.inc[i].x + p.grid.src[i].mLeft){
 									// current = i  ;
 									// i = 0;
 								// }
 							// }
 							// if(el.dragEl.delta.x < 0){
-								// if(pos.x  <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x - p.overcrossing ){
+								// if(pos.x - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x - p.overcrossing ){
 									// current = i;
 								// }
 							// }
 							// if(el.dragEl.delta.x == 0){
-								if(pos.x + (el.dragEl.offsetWidth / 2)  >= p.grid.inc[i].x + p.grid.src[i].mLeft  && pos.x + (el.dragEl.offsetWidth / 2) <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){//center in some elements range
+								if(pos.x + (el.dragEl.offsetWidth / 2) - p.lim.left  >= p.grid.inc[i].x + p.grid.src[i].mLeft  && pos.x + (el.dragEl.offsetWidth / 2) - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){//center in some elements range
 									current = i;
 									i = 0;
 								}else{//center is not in any element
-									if(!rcurrent && pos.x + el.dragEl.offsetWidth >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x + el.dragEl.offsetWidth <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){// right side insight
+									if(!rcurrent && pos.x + el.dragEl.offsetWidth - p.lim.left >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x + el.dragEl.offsetWidth - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){// right side insight
 										rcurrent = i;
-										rightDepth = (pos.x + el.dragEl.offsetWidth) - (p.grid.inc[i].x + p.grid.src[i].mLeft);
+										rightDepth = (pos.x + el.dragEl.offsetWidth) - (p.grid.inc[i].x + p.grid.src[i].mLeft) - p.lim.left;
 									}
-									if(!lcurrent && pos.x >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){
+									if(!lcurrent && pos.x - p.lim.left >= p.grid.inc[i].x + p.grid.src[i].mLeft && pos.x - p.lim.left <= p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x){
 										lcurrent = i;										
-										leftDepth =  (p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x) - pos.x;
+										leftDepth =  (p.grid.inc[i].x + p.grid.src[i].mLeft + p.grid.src[i].x) - (pos.x + p.lim.left);
 									}
 									if(rightDepth && leftDepth){//left and right edges are inside elements 
 										if(rightDepth > leftDepth){//right side is deeper inside
@@ -289,11 +289,11 @@ $.fn.extend({
 						}
 					}
 					if(el.dragEl.isExtra){
-						if(pos.x + el.dragEl.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
+						if(pos.x + el.dragEl.offsetWidth - p.lim.left >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
 							current = max ;
 						}
 					}else{
-						if(pos.x + src.offsetWidth >= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
+						if(pos.x + src.offsetWidth - p.lim.left>= p.grid.inc[max].x  + p.grid.src[max].x + p.grid.src[max].mLeft + p.overcrossing){
 							current = max;
 						}
 					}
@@ -310,7 +310,7 @@ $.fn.extend({
 								src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 							}
 							el.curIndex = current;
-							el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.left + p.lim.borderX/2;
+							el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.borderX/2;
 							this.getGrid(p);
 						}
 					}
@@ -318,12 +318,12 @@ $.fn.extend({
 				if(/y/.test(p.sortable)){
 					for(i = max; i >= 0; i--){
 						if(delta.y - p.overcrossing > 0){
-							if(pos.y + src.offsetHeight <= p.grid.inc[i].y + p.grid.src[i].mTop + p.grid.src[i].y + p.overcrossing){
+							if(pos.y + src.offsetHeight - p.lim.top <= p.grid.inc[i].y + p.grid.src[i].mTop + p.grid.src[i].y + p.overcrossing){
 								current =  i ? i - 1 : i;
 							}
 						}
 						if(delta.y + p.overcrossing < 0){
-							if(pos.y <= p.grid.inc[i].y + p.grid.src[i].mTop - p.overcrossing){
+							if(pos.y - p.lim.top <= p.grid.inc[i].y + p.grid.src[i].mTop - p.overcrossing){
 								if(p.grid.stack[i] == src){
 									current = i ;
 								}else{
@@ -332,7 +332,7 @@ $.fn.extend({
 							}
 						}
 					}
-					if(pos.y  + src.offsetHeight >= p.grid.inc[max].y  + p.grid.src[max].y + p.grid.src[max].mTop + p.overcrossing){
+					if(pos.y  + src.offsetHeight - p.lim.top >= p.grid.inc[max].y  + p.grid.src[max].y + p.grid.src[max].mTop + p.overcrossing){
 						current = max;
 					}
 					if(current != el.curIndex){
@@ -342,7 +342,7 @@ $.fn.extend({
 							src.parentNode.insertBefore(src, p.grid.stack[current + 1]);
 						}
 						el.curIndex = current;
-						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.top + p.lim.borderY/2;
+						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.borderY/2;
 						this.getGrid(p);
 					}
 				}
@@ -359,33 +359,17 @@ $.fn.extend({
 						x: val.x,
 						y: val.y
 					};
-					
-				if(el.scope == el.dragEl.parentNode){
-					if(p.lim.left > val.x){//left edge excessing
-						result.x = p.lim.left;
-					}
-					if(p.lim.width - el.dragEl.offsetWidth < val.x - p.lim.left){//right edge excessing
-						result.x = p.lim.width - el.dragEl.offsetWidth + p.lim.left;
-					}
-					if(p.lim.top > val.y){//top edge excessing
-						result.y = p.lim.top;
-					}
-					if(p.lim.height - el.dragEl.offsetHeight < val.y - p.lim.top){//bottom edge excessing
-						result.y = p.lim.height - el.dragEl.offsetHeight + p.lim.top;
-					}
-				}else{//TODO:check if there is required to add lim.top/left
-					if(p.lim.left > val.x){
-						result.x = p.lim.left;
-					}
-					if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth < val.x){
-						result.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth
-					}
-					if(p.lim.top > val.y){
-						result.y = p.lim.top;
-					}
-					if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight < val.y){
-						result.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight;
-					}
+				if(p.lim.left > val.x){//left edge excessing
+					result.x = p.lim.left;
+				}	
+				if(p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth < val.x){//right edge excessing
+					result.x = p.lim.left + p.lim.width + p.lim.borderX/2 - el.dragEl.offsetWidth
+				}
+				if(p.lim.top > val.y){//top edge excessing
+					result.y = p.lim.top;
+				}
+				if(p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight < val.y){//bottom edge excessing
+					result.y = p.lim.top + p.lim.height + p.lim.borderY/2 - el.dragEl.offsetHeight;
 				}
 				if(axis){
 					return result[axis];
@@ -400,31 +384,16 @@ $.fn.extend({
 					if(/x/.test(p.leaveScope)){
 						return true;
 					}
-					if(el.scope != el.dragEl.parentNode){
-						return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.offsetWidth);
-					}else{
-						return(0 <= val.x && p.lim.width - p.lim.borderX >= val.x + el.dragEl.offsetWidth);
-					}
+					return(p.lim.left <= val.x && p.lim.left + p.lim.width - p.lim.borderX >= val.x + el.dragEl.offsetWidth);
 				}else{
 					if(/y/.test(p.leaveScope)){
 						return true;
 					}
-					if(el.scope != el.dragEl.parentNode){
-						return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.offsetHeight);
-					}else{
-						return(0 <= val.y && p.lim.height + p.lim.borderY >= val.y + el.dragEl.offsetHeight);
-					}	
+					return(p.lim.top <= val.y && p.lim.top + p.lim.height - p.lim.borderY >= val.y + el.dragEl.offsetHeight);
 				}
 			},
 			moveAt: function(e, p, ultimate){
 				var
-					// pos = {
-						// x: e.pageX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2,
-						// y: e.pageY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2
-					// };
-					/*
-					check methods: toRange, checkLeftScope,checkOriginPosition,inRange
-					*/
 					 pos = {
 						x: e.pageX - el.runtime.shiftX - p.lim.borderX/2,
 						y: e.pageY - el.runtime.shiftY - p.lim.borderY/2
