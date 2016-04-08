@@ -17,10 +17,6 @@ $.fn.extend({
 				if(typeof(d.dragMod) == 'function'){
 					d.dragMod(el.dragEl);
 				}
-				if(d.center){
-					el.runtime.shiftX = el.dragEl.clientWidth/2;
-					el.runtime.shiftY = el.dragEl.clientHeight/2;
-				}
 				if(d.maxItems !== undefined){
 					p.maxItems = d.maxItems;
 				}
@@ -48,6 +44,10 @@ $.fn.extend({
 				}
 				if(typeof(d.srcPasted) == 'function'){
 					d.srcPasted(p.inserted);
+				}
+				if(d.center){
+					el.runtime.shiftX = el.dragEl.clientWidth/2;
+					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
 				el.dragEl.style.left = el.runtime.startX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2 + 'px';
 				el.dragEl.style.top = el.runtime.startY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2 + 'px';
@@ -498,11 +498,12 @@ $.fn.extend({
 					if(el.dragEl && el.dragEl.isExtra){
 						if(extraEl){//DnD is placed in scope
 								$(p.inserted).removeClass('s_minimized s_noboard');
-							extraEl.parentNode.replaceChild(p.inserted, extraEl);
+								extraEl.parentNode.replaceChild(p.inserted, extraEl);
 								el.replacedWithExtra = true;
 						}else{
 							if(p.inserted){
-								p.inserted.parentNode.removeChild(el.dragEl);
+								p.inserted.parentNode.removeChild(p.inserted);
+								p.inserted = null;
 							}
 						}
 					}
