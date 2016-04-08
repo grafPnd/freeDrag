@@ -13,7 +13,6 @@ $.fn.extend({
 				el.destScope = d.scope;
 				p.sortable = d.sortable;
 				el.friends = $(el.destScope).children();
-				// el.destScope.appendChild(el.dragEl);
 				window.top.document.body.appendChild(el.dragEl);
 				if(typeof(d.dragMod) == 'function'){
 					d.dragMod(el.dragEl);
@@ -73,7 +72,6 @@ $.fn.extend({
 				el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
 				el.$dragEl = $(el.dragEl);
 				el.dragEl.innerHTML = el.innerHTML;
-				// el.scope.appendChild(el.dragEl);
 				window.top.document.body.appendChild(el.dragEl);
 				el.dragEl.origin = el;
 				el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
@@ -94,6 +92,7 @@ $.fn.extend({
 					el.style.opacity = 0;
 				}
 				el.dragStarted = true;
+				$(document.body).children().addClass('s_noselect');
 				if (window.getSelection) {
 					if (window.getSelection().empty) {
 						window.getSelection().empty();
@@ -521,6 +520,7 @@ $.fn.extend({
 					p.inserted = null;
 				}
 				$('iframe').css('pointer-events', 'auto');
+				$(document.body).children().removeClass('s_noselect');
 				if(window.SFDCaptured){
 					window.SFDCaptured = false;
 				}
