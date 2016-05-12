@@ -51,7 +51,7 @@ $.fn.extend({
 				}
 				el.dragEl.style.left = el.runtime.startX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2 + 'px';
 				el.dragEl.style.top = el.runtime.startY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2 + 'px';
-				//TODO: or set defferedMove 
+				//TODO: $(el).FD_().moveAt({e...}, p, true);
 			},
 			start: function(e,p){
 				var
@@ -92,6 +92,9 @@ $.fn.extend({
 					el.style.opacity = 0;
 				}
 				el.dragStarted = true;
+					$el.bind("click.prevent", function (event) {
+						event.stopImmediatePropagation();
+					});
 				$(document.body).children().addClass('s_noselect');
 				if (window.getSelection) {
 					if (window.getSelection().empty) {
@@ -401,16 +404,24 @@ $.fn.extend({
 			},
 			moveAt: function(e, p, ultimate){
 				var
-					 pos = {
+					scr = {
+						x: $(window).scrollLeft(),
+						y: $(window).scrollTop()
+					},
+					pos = {
 						x: e.pageX - el.runtime.shiftX - p.lim.borderX/2,
 						y: e.pageY - el.runtime.shiftY - p.lim.borderY/2
 					};
+				scr = {
+						x: 0,
+						y: 0
+					}
 				if((ultimate || !p.scope) && !el.destScope){
 					if(p.scope){
 						pos = this.toRange(pos, p);
 					}
-					el.dragEl.style.left = pos.x + 'px';
-					el.dragEl.style.top = pos.y + 'px';
+					el.dragEl.style.left = pos.x + scr.x + 'px';
+					el.dragEl.style.top = pos.y + scr.y + 'px';
 					return;
 				}
 				if(p.leaveScope){
@@ -422,16 +433,16 @@ $.fn.extend({
 					$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate')
 				}
 				if(this.inRange(pos, p, true)){
-					el.dragEl.style.left = pos.x + 'px';
+					el.dragEl.style.left = pos.x + scr.x + 'px';
 				}else{
 					pos.x = this.toRange(pos, p, 'x');
-					el.dragEl.style.left = pos.x + 'px';
+					el.dragEl.style.left = pos.x + scr.x + 'px';
 				}
 				if(this.inRange(pos, p)){
-					el.dragEl.style.top = pos.y + 'px';
+					el.dragEl.style.top = pos.y + scr.y + 'px';
 				}else{
 					pos.y = this.toRange(pos, p, 'y');
-					el.dragEl.style.top = pos.y + 'px';
+					el.dragEl.style.top = pos.y + scr.y + 'px';
 				}
 				el.dragEl.delta = {
 					x: pos.x - (el.dragEl.runtime ? el.dragEl.runtime.x : 0),
@@ -480,7 +491,7 @@ $.fn.extend({
 					el.ableToDrag = true;
 					el.runtime = {
 						pageX: e.pageX,
-						pageY: e.pageY
+						pageY: e.pageY,
 					}
 					window.SFDCaptured = true;
 					$('iframe').css('pointer-events', 'none');
@@ -514,6 +525,11 @@ $.fn.extend({
 						el.dragEl = null;
 						el.friends = null;
 						el.dragStarted = false;
+							//This trick was added because FF fires click event just after mouseup and always runs the menu item after dragging.
+							//Inspired by http://stackoverflow.com/questions/1771627/preventing-click-event-with-jquery-drag-and-drop#answer-1771635
+							setTimeout(function(){
+								$el.unbind("click.prevent");
+							}, 300);
 						if(p && p.onDragEnd && typeof(p.onDragEnd) == 'function'){
 							p.onDragEnd(el, p);
 						}
