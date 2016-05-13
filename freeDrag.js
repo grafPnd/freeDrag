@@ -4,7 +4,7 @@ $.fn.extend({
 			$el = this,
 			el = this[0];
 		return {
-			restart: function(p,d){
+			restart: function(e,p,d){
 				var
 					pos = {
 						x: 0,
@@ -49,9 +49,10 @@ $.fn.extend({
 					el.runtime.shiftX = el.dragEl.clientWidth/2;
 					el.runtime.shiftY = el.dragEl.clientHeight/2;
 				}
-				el.dragEl.style.left = el.runtime.startX - el.runtime.shiftX - p.lim.left - p.lim.borderX/2 + 'px';
-				el.dragEl.style.top = el.runtime.startY - el.runtime.shiftY - p.lim.top - p.lim.borderY/2 + 'px';
-				//TODO: $(el).FD_().moveAt({e...}, p, true);
+				console.log('moveAt call : reatart')
+				$el.FD_().moveAt({
+					pageX: el.runtime.startX - p.lim.left,
+					pageY: el.runtime.startY - p.lim.top}, p, true);
 			},
 			start: function(e,p){
 				var
@@ -66,8 +67,8 @@ $.fn.extend({
 				el.fullWidth = el.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
 				el.runtime.shiftX = e.pageX - coords.left;//e.offsetX
 				el.runtime.shiftY= e.pageY - coords.top;//e.offsetY	
-				el.runtime.startX= e.pageX;
-				el.runtime.startY= e.pageY;
+				el.runtime.startX= e.pageX// - $(window).scrollLeft();
+				el.runtime.startY= e.pageY// - $(window).scrollTop();
 				el.initIndex = null;
 				el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
 				el.$dragEl = $(el.dragEl);
@@ -217,7 +218,7 @@ $.fn.extend({
 					}
 				}
 			},
-			checkOriginPosition: function(pos, p){
+			checkOriginPosition: function(e, p){
 				//TODO:check when p.sortable == 'x,y'
 				if(!p || !p.sortable){
 					return;
@@ -230,11 +231,18 @@ $.fn.extend({
 					max = el.dragEl.isExtra ? p.grid.inc.length - 2 : p.grid.inc.length - 1,
 					i = max,
 					current = el.curIndex,
+					pos = {x: e.x, y: e.y},
+					// pos = {x: e.x - $(window).scrollLeft(), y: e.y - $(window).scrollTop()},
 					delta = {//this delta should recalculate after rebuild
 						x: pos.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.borderX/2)),
 						y: pos.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.borderY/2))
 					},
+					// delta = {//this delta should recalculate after rebuild
+						// x: e.x - (el.runtime.startX  - (el.runtime.shiftX + p.lim.borderX/2)),
+						// y: e.y + $(window).scrollTop() - (el.runtime.startY  - (el.runtime.shiftY + p.lim.borderY/2))
+					// },
 					src = p.inserted || el;
+					console.log(delta,el.runtime.startY)
 				if(/x/.test(p.sortable)){	
 					for(i = max; i >= 0; i--){
 						if(delta.x - p.overcrossing > 0){
@@ -412,38 +420,50 @@ $.fn.extend({
 						x: e.pageX - el.runtime.shiftX - p.lim.borderX/2,
 						y: e.pageY - el.runtime.shiftY - p.lim.borderY/2
 					};
-				scr = {
-						x: 0,
-						y: 0
-					}
+					/*
+					//при скролле некорректно отрабатывают
+					toRange();
+					checkLeftScope();
+					checkOriginPosition();
+					inRange()
+					
+					
+					избавиться от проверки на inRange. toRange должна всё оставлять как есть если inRange
+					// if(this.inRange(pos, p)){
+						// el.dragEl.style.top = pos.y + 'px';
+					// }else{
+						// pos.y = this.toRange(pos, p, 'y');
+						el.dragEl.style.top = pos.y + 'px';
+					// }
+					*/
 				if((ultimate || !p.scope) && !el.destScope){
 					if(p.scope){
-						pos = this.toRange(pos, p);
+						// pos = this.toRange(pos, p);
 					}
-					el.dragEl.style.left = pos.x + scr.x + 'px';
-					el.dragEl.style.top = pos.y + scr.y + 'px';
+					el.dragEl.style.left = pos.x + 'px';
+					el.dragEl.style.top = pos.y + 'px';
 					return;
 				}
 				if(p.leaveScope){
-					this.checkLeftScope(pos, p);
+					// this.checkLeftScope(pos, p);
 				}
 				if(!p.leftScope){
-					this.checkOriginPosition(pos, p);
+					// this.checkOriginPosition(pos, p);
 				}else{
 					$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate')
 				}
-				if(this.inRange(pos, p, true)){
-					el.dragEl.style.left = pos.x + scr.x + 'px';
-				}else{
-					pos.x = this.toRange(pos, p, 'x');
-					el.dragEl.style.left = pos.x + scr.x + 'px';
-				}
-				if(this.inRange(pos, p)){
-					el.dragEl.style.top = pos.y + scr.y + 'px';
-				}else{
-					pos.y = this.toRange(pos, p, 'y');
-					el.dragEl.style.top = pos.y + scr.y + 'px';
-				}
+				// if(this.inRange(pos, p, true)){
+					// el.dragEl.style.left = pos.x + 'px';
+				// }else{
+					// pos.x = this.toRange(pos, p, 'x');
+					el.dragEl.style.left = pos.x + 'px';
+				// }
+				// if(this.inRange(pos, p)){
+					// el.dragEl.style.top = pos.y + 'px';
+				// }else{
+					// pos.y = this.toRange(pos, p, 'y');
+					el.dragEl.style.top = pos.y + 'px';
+				// }
 				el.dragEl.delta = {
 					x: pos.x - (el.dragEl.runtime ? el.dragEl.runtime.x : 0),
 					y: pos.y - (el.dragEl.runtime ? el.dragEl.runtime.y : 0)
@@ -550,6 +570,7 @@ $.fn.extend({
 							y: Math.abs(e.pageY - el.runtime.pageY)
 						};
 					if(el.dragStarted){
+						console.log('moveAt call : move')
 						$(el).FD_().moveAt(e, p);
 					}else{
 						if(delta.x <= p.sensitivity && delta.y <= p.sensitivity){
@@ -557,17 +578,18 @@ $.fn.extend({
 						}
 						$(el).FD_().start(e,p);
 						if(p && p.onDragStart && typeof(p.onDragStart) == 'function'){
-								p.onDragStart(el, p);
+							p.onDragStart(el, p);
 						}
 						if(p.defferedMove){
-							$(el).FD_().moveAt(p.defferedMove, p, true);
+							console.log('moveAt call : deffered')
+							$(el).FD_().moveAt(e, p, true);
 						}
 					}
 				}
 			})
 			.on('setDragScope',function(e,data){
 				if(el.ableToDrag){
-					$(el).FD_().restart(p,data);
+					$(el).FD_().restart(e,p,data);
 				}
 			})
 			.on('removeDragScope',function(e,data){
