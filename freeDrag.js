@@ -4,7 +4,7 @@ $.fn.extend({
 			$el = this,
 			el = this[0];
 		return {
-			restart: function(e,p,d){
+			restart: function(p,d){
 				var
 					pos = {
 						x: 0,
@@ -182,7 +182,7 @@ $.fn.extend({
 						reached = false;
 					}
 				}
-				if(/y/.test(p.leaveScope) || true){
+				if(/y/.test(p.leaveScope)){
 					if(pos.y > p.lim.height + p.lim.top + p.scrTop  || pos.y + el.dragEl.offsetHeight < p.lim.top + p.scrTop){
 						left = true;
 					}
@@ -487,7 +487,7 @@ $.fn.extend({
 					el.ableToDrag = true;
 					el.runtime = {
 						pageX: e.pageX,
-						pageY: e.pageY,
+						pageY: e.pageY
 					}
 					window.SFDCaptured = true;
 					$('iframe').css('pointer-events', 'none');
@@ -563,7 +563,7 @@ $.fn.extend({
 			})
 			.on('setDragScope',function(e,data){
 				if(el.ableToDrag){
-					$(el).FD_().restart(e,p,data);
+					$(el).FD_().restart(p,data);
 				}
 			})
 			.on('removeDragScope',function(e,data){
