@@ -6,12 +6,12 @@ $.fn.extend({
 			el = this[0];
 		return {
 			restart: function(p,d){
-				p.scrTop = 0;
-				p.scrLeft = 0;
-				el.destScope = d.scope;
-				p.sortable = d.sortable;
-				el.friends = $(el.destScope).children();
-				el.dragEl.isExtra = false;
+					p.scrTop = 0;
+					p.scrLeft = 0;
+					el.destScope = d.scope;
+					p.sortable = d.sortable;
+					el.friends = $(el.destScope).children();
+					el.dragEl.isExtra = false;
 				window.top.document.body.appendChild(el.dragEl);
 				if(typeof(d.dragMod) == 'function'){
 					d.dragMod(el.dragEl);
@@ -51,26 +51,26 @@ $.fn.extend({
 				$el.FD_().moveAt({
 					pageX: el.runtime.startX - p.lim.left,
 					pageY: el.runtime.startY - p.lim.top}, p, true);
-			},
-			start: function(e,p){
-				var
-					coords,
-					computed = getComputedStyle(el);
-				p.overcrossing = p.overcrossing || 0;
-				p.sensitivity = p.sensitivity || 1;
-				el.scope = (p && p.scope) ? p.scope == 'parent' ? el.parentNode : p.scope.length ? p.scope[0] : p.scope : window.top.document.body;
-				this.getLim(p);
-				coords = this.getCoords();
-				el.fullHeight = el.offsetHeight + parseInt(computed.marginTop,10) + parseInt(computed.marginBottom,10);
-				el.fullWidth = el.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
-				el.runtime.shiftX = e.pageX - coords.left;//e.offsetX
-				el.runtime.shiftY= e.pageY - coords.top;//e.offsetY	
-				el.runtime.startX= e.pageX;
-				el.runtime.startY= e.pageY;
-				el.initIndex = null;
-				el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
-				el.$dragEl = $(el.dragEl);
-				el.dragEl.innerHTML = el.innerHTML;
+				},
+				start: function(e,p){
+					var
+						coords,
+						computed = getComputedStyle(el);
+					p.overcrossing = p.overcrossing || 0;
+					p.sensitivity = p.sensitivity || 1;
+					el.scope = (p && p.scope) ? p.scope == 'parent' ? el.parentNode : p.scope.length ? p.scope[0] : p.scope : window.top.document.body;
+					this.getLim(p);
+					coords = this.getCoords();
+					el.fullHeight = el.offsetHeight + parseInt(computed.marginTop,10) + parseInt(computed.marginBottom,10);
+					el.fullWidth = el.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
+					el.runtime.shiftX = e.pageX - coords.left;//e.offsetX
+					el.runtime.shiftY= e.pageY - coords.top;//e.offsetY	
+					el.runtime.startX= e.pageX;
+					el.runtime.startY= e.pageY;
+					el.initIndex = null;
+					el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
+					el.$dragEl = $(el.dragEl);
+					el.dragEl.innerHTML = el.innerHTML;
 				window.top.document.body.appendChild(el.dragEl);
 				el.dragEl.origin = el;
 				el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
@@ -531,15 +531,15 @@ $.fn.extend({
 						}else{
 							el.ableToDrag = true;
 						}
-					el.runtime = {
-						pageX: e.pageX,
-						pageY: e.pageY
-					}
-					window.SFDCaptured = true;
-					$('iframe').css('pointer-events', 'none');
+						el.runtime = {
+							pageX: e.pageX,
+							pageY: e.pageY
+						}
+						window.SFDCaptured = true;
+						$('iframe').css('pointer-events', 'none');
 						if(p.isTouch){
 							$('body').addClass('s_noselect');
-				}
+						}
 					}
 			});
 			$(window.top)
@@ -552,8 +552,8 @@ $.fn.extend({
 					p.defferedMove = false;
 					el.style.opacity = 1;
 						el.replacedWithExtra = false;
-					if(el.dragEl && el.dragEl.isExtra){
-						if(extraEl){//DnD is placed in scope
+						if(el.dragEl && el.dragEl.isExtra){
+							if(extraEl){//DnD is placed in scope
 								p.$extraElData = $extraEl.data();
 								$(p.inserted).removeClass('s_minimized s_noboard');
 								extraEl.parentNode.replaceChild(p.inserted, extraEl);
@@ -588,12 +588,12 @@ $.fn.extend({
 					}
 					p.isTouch = false;
 					p.touchDrag = 0;
-				$('iframe').css('pointer-events', 'auto');
-				$(document.body).children().removeClass('s_noselect');
-				if(window.SFDCaptured){
-					window.SFDCaptured = false;
-				}
-			})
+					$('iframe').css('pointer-events', 'auto');
+					$(document.body).children().removeClass('s_noselect');
+					if(window.SFDCaptured){
+						window.SFDCaptured = false;
+					}
+				})
 				.on('mousemove touchmove',function(e){
 					if(p.isTouch){
 						if(p.touchDrag == 1){
