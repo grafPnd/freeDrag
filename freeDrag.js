@@ -342,6 +342,14 @@ $.fn.extend({
 									}
 								}
 							}
+						}else{
+							$(p.grid.stack[current]).addClass('j_fDnDcandidate').css({opacity:0});
+							if (p.leftScope) {
+								p.leftScope = false;
+								if (p && p.onReachingScope && typeof(p.onReachingScope) == 'function') {
+									p.onReachingScope(el, p);
+								}
+							}
 						}
 						el.curIndex = current;
 					}else{
@@ -439,6 +447,12 @@ $.fn.extend({
 					pos = {
 						x: e.pageX - el.runtime.shiftX - p.lim.borderX/2,
 						y: e.pageY - el.runtime.shiftY - p.lim.borderY/2
+					},
+					posRel = function(){
+						return {
+							x: pos.x + el.parentNode.scrollLeft,
+							y: pos.y + el.parentNode.scrollTop
+						}
 					};
 				this.getLim(p);
 				p.scrTop = $window.scrollTop();
@@ -452,10 +466,10 @@ $.fn.extend({
 					return;
 				}
 				if(p.leaveScope){
-					this.checkLeftScope(pos, p);
+					this.checkLeftScope(posRel(), p);
 				}
 				if(!p.leftScope){
-					this.checkOriginPosition(pos, p);
+					this.checkOriginPosition(posRel(), p);
 				}else{
 					$(el.friends).css({opacity:1}).removeClass('j_fDnDcandidate')
 				}
