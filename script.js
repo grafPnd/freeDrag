@@ -204,7 +204,7 @@ $(function(){
 		lock: 'j_locked',
 		scope: 'parent',
 		sortable: 'y',
-		overcrossing: 5,
+		overcrossing: 0,
 		sensitivity: 5
 	});
 	$('.j_SubListItem').SbmFreeDrag({

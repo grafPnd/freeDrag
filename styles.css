@@ -13,6 +13,7 @@
   position:absolute;
   color: #555;
   font-weight: bold;
+  cursor:not-allowed;
 }
 *{
 	cursor:default;

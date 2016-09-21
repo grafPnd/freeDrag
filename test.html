@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body>
+<link href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<style>
+div {
+  display: inline-block;
+  margin: 20px;
+  text-align: center;
+}
+.ui-draggable {
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  background: dodgerblue;
+}
+#droppable {
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  background: hotpink;
+}
+</style>
+<script type = "text/javascript">
+$(function() {
+  $("#draggable").draggable({
+  	helper: 'clone',
+     over: function(event, ui) {
+      ui.helper.css("cursor", "copy");
+    },
+    start: function(event,ui){
+     ui.helper.css("cursor", "pointer");
+    },
+    stop: function(event,ui){
+     ui.helper.css("cursor", "initial");
+    }
+  });
+  $("#droppable").droppable({
+    over: function(event, ui) {
+      ui.helper.css("cursor", "copy");
+    },
+    out: function(event, ui) {
+      ui.helper.css("cursor", "no-drop");
+    }
+  });
+});
+</script>
+<div id="draggable">
+  <span>Drag</span>
+</div>
+
+<div id="droppable">
+  <span>Drop here</span>
+</div>
+    </body>
+</html>
