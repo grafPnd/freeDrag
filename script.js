@@ -216,4 +216,7 @@ $(function(){
 		onReachingScope: leftMenuHelper.onReachingScope,
 		onDragEnd: leftMenuHelper.onDragEnd
 	});
+	$('#j_tray').SbmFreeDrag({
+		trueDrag: true
+	});
 });

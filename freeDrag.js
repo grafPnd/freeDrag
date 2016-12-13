@@ -68,12 +68,17 @@ $.fn.extend({
 					el.runtime.startX= e.pageX;
 					el.runtime.startY= e.pageY;
 					el.initIndex = null;
-					el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
-					el.$dragEl = $(el.dragEl);
-					el.dragEl.innerHTML = el.innerHTML;
-				window.top.document.body.appendChild(el.dragEl);
-				el.dragEl.origin = el;
-				el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
+					if(p.trueDrag){//deprecated to use with any other parameters
+						el.$dragEl = $(el);
+						el.dragEl = el;
+					}else{
+						el.dragEl = p && p.ndrgel ? p.ndrgel : el.cloneNode();
+						el.$dragEl = $(el.dragEl);
+						el.dragEl.innerHTML = el.innerHTML;
+						window.top.document.body.appendChild(el.dragEl);
+						el.dragEl.origin = el;
+						el.dragEl.className = el.dragEl.className.replace(/(s|j)_[^\s]*/igm,'');
+					}
 				if(p.sortable){
 					this.getGrid(p);
 					el.$dragEl.css({
@@ -87,7 +92,7 @@ $.fn.extend({
 					'position': 'absolute',
 					'margin': '0px'
 				});
-				if(!p.sourceCopy){
+				if(!p.sourceCopy && !p.trueDrag){
 					el.style.opacity = 0;
 				}
 				el.dragStarted = true;
@@ -135,7 +140,7 @@ $.fn.extend({
 					src: [],
 					stack: []
 				};
-			$(scope).children().each(function(ii,node){
+					$(scope).children().filter(':visible').each(function(ii,node){
 					var
 						computed = getComputedStyle(node);
 					if(node != el.dragEl){
@@ -516,11 +521,11 @@ $.fn.extend({
 					lock,
 					ll,
 					l = 0;
-				$el.on('mousedown touchstart',function(e){
-					if(!window.SFDCaptured){
-						if(e.originalEvent && e.originalEvent.targetTouches && e.originalEvent.targetTouches[0]){
-							p.isTouch = true;
-						}
+			$el.on('mousedown touchstart',function(e){
+				if(!window.SFDCaptured){
+					if(e.originalEvent && e.originalEvent.targetTouches && e.originalEvent.targetTouches[0]){
+						p.isTouch = true;
+					}
 					if(p.lock){
 						lock = p.lock.split(' ');
 						ll = lock.length;
@@ -532,29 +537,29 @@ $.fn.extend({
 							}
 						}
 					}
-						if(p.isTouch){
-							e.pageX = e.originalEvent.targetTouches[0].pageX;
-							e.pageY = e.originalEvent.targetTouches[0].pageY;
-							setTimeout(function(){
-								e.preventDefault();
-								if(!p.touchDrag){
-									p.touchDrag = 1;//0-touchend; 1-long tap; 2-scroll; 
-					el.ableToDrag = true;
-								}
-							},300);
-						}else{
-							el.ableToDrag = true;
-						}
-						el.runtime = {
-							pageX: e.pageX,
-							pageY: e.pageY
-						}
-						window.SFDCaptured = true;
-						$('iframe').css('pointer-events', 'none');
-						if(p.isTouch){
-							$('body').addClass('s_noselect');
-						}
+					if(p.isTouch){
+						e.pageX = e.originalEvent.targetTouches[0].pageX;
+						e.pageY = e.originalEvent.targetTouches[0].pageY;
+						setTimeout(function(){
+							e.preventDefault();
+							if(!p.touchDrag){
+								p.touchDrag = 1;//0-touchend; 1-long tap; 2-scroll; 
+								el.ableToDrag = true;
+							}
+						},300);
+					}else{
+						el.ableToDrag = true;
 					}
+					el.runtime = {
+						pageX: e.pageX,
+						pageY: e.pageY
+					}
+					window.SFDCaptured = true;
+					$('iframe').css('pointer-events', 'none');
+					if(p.isTouch){
+						$('body').addClass('s_noselect');
+					}
+				}
 			});
 			$(window.top)
 				.on('mouseup touchend',function(){
@@ -580,7 +585,7 @@ $.fn.extend({
 						}
 					}
 					if(el.dragStarted){
-						if(el.dragEl && el.dragEl.parentNode){
+						if(el.dragEl && el.dragEl.parentNode && !p.trueDrag){
 							el.dragEl.parentNode.removeChild(el.dragEl);
 						}
 						el.dragEl = null;
