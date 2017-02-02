@@ -217,6 +217,35 @@ $(function(){
 		onDragEnd: leftMenuHelper.onDragEnd
 	});
 	$('#j_tray').SbmFreeDrag({
-		trueDrag: true
+		trueDrag: true,
+		scope: document.body,
+		lock: 'j_noDrag',
+		magnetic: {
+			targets: [{
+					alignment: false,
+					target: document.body,
+					sensitivity: 20,
+					onJoin: function(el, p, side){
+						console.log('joined', el, p, side)
+					},
+					onDetach: function(el, p, side){
+						console.log('detached', el, p, side)
+					}
+				},{
+					alignment: {
+						top: 'center',
+						bottom: 'center'
+					},
+					target: $('.j_topmenu')[0],
+					sensitivity: 10,
+					onJoin: function(el, p, side){
+						console.log('joined', el, p, side)
+					},
+					onDetach: function(el, p, side){
+						console.log('detached', el, p, side)
+					}
+				}
+			]
+		}
 	});
 });

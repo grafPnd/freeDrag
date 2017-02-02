@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<link rel = "stylesheet" type = "text/css" href = "./styles.css">
+	<link rel = "stylesheet" type = "text/css" href = "./static.css">
+	<script type = "text/javascript" src = "./jquery-1.11.3.min.js"></script>
+	<script type = "text/javascript" src = "./freeDrag.js"></script>
+	<script type = "text/javascript">
+		$(function(){
+			$('#j_box').SbmFreeDrag({
+				trueDrag: true,
+				scope:'parent'
+			});
+		});
+	</script>
+	</head>
+	<body>
+		<div id = "j_box" class = "ifrBox">
+		</div>
+	</body>
+</html>
