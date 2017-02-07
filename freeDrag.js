@@ -73,6 +73,8 @@
 					el.fullWidth = el.offsetWidth + parseInt(computed.marginLeft,10) + parseInt(computed.marginRight,10);
 					el.runtime.shiftX = e.pageX - coords.left;//e.offsetX
 					el.runtime.shiftY= e.pageY - coords.top;//e.offsetY	
+					el.runtime.borderX = coords.borderX;
+					el.runtime.borderY = coords.borderY;
 					el.runtime.startX= e.pageX;
 					el.runtime.startY= e.pageY;
 					el.initIndex = null;
@@ -139,6 +141,8 @@
 						p.lim.left = 0;
 						p.lim.top = 0;
 					}
+					p.lim.centerX = p.lim.left + p.lim.width / 2;
+					p.lim.centerY = p.lim.top + p.lim.height / 2;
 				},
 				getParents: function(p){
 					p.parents = [];
@@ -154,13 +158,20 @@
 					i = 0,
 						incX = 0,
 						incY = 0,
-						scope = el.destScope || el.scope;
+						scope = el.destScope || el.scope,
+						rels =  $(scope).children().filter(':visible');
+						
+					if(p.rel){
+						rels = $(p.rel,el.parentNode);
+					}else{
+						rels = $(scope).children().filter(':visible')
+					}
 					p.grid = {
 						inc: [],
 						src: [],
 						stack: []
 					};
-					$(scope).children().filter(':visible').each(function(ii,node){
+					rels.each(function(ii, node) {
 						var
 							computed = window.getComputedStyle ? getComputedStyle(node, '') : node.currentStyle;
 						if(node != el.dragEl){
@@ -387,6 +398,9 @@
 							el.curIndex = current;
 							el.runtime.startX = pos.x + el.runtime.shiftX + p.lim.borderX / 2;
 							this.getGrid(p);
+								if(typeof(p.onReplaceOrigin) == 'function'){
+									p.onReplaceOrigin(el, p);
+								}
 						}
 					}
 				}
@@ -419,6 +433,9 @@
 							el.curIndex = current;
 						el.runtime.startY = pos.y + el.runtime.shiftY + p.lim.borderY/2;
 							this.getGrid(p);
+							if(typeof(p.onReplaceOrigin) == 'function'){
+								p.onReplaceOrigin(el, p);
+							}
 						}
 					}
 				},
@@ -466,6 +483,28 @@
 						}
 						return(p.lim.top + p.scrTop <= val.y && p.lim.top + p.scrTop + p.lim.height - p.lim.borderY >= val.y + el.dragEl.offsetHeight);
 					}	
+				},
+				tryAlign: function (val, p){
+					var
+						result = {
+							x: val.x,
+							y: val.y
+						},
+					delta = {
+							x: val.x - (el.runtime.startX - (el.runtime.shiftX + p.lim.borderX / 2)),
+							y: val.y - (el.runtime.startY - (el.runtime.shiftY + p.lim.borderY / 2))
+						};
+					if(p.align.x){
+						if(p.align.x == 'center'){
+							if (Math.abs(delta.x)  < p.align.sensitivity){
+								el.onHold = true;
+								result.x = p.lim.centerX - el.dragEl.clientWidth  / 2 - el.runtime.borderX / 2;
+							}else{
+								el.onHold = false;
+							}
+						}
+					}
+					return result;
 				},
 				tryMagnetic: function(val, p) {
 					var
@@ -639,7 +678,7 @@
 						el.dragEl.style.top = pos.y + 'px';
 						return;
 					}
-					if(p.leaveScope){
+					if (p.leaveScope && !el.onHold) {
 						this.checkLeftScope(posRel(), p);
 					}
 					if(!p.leftScope){
@@ -655,6 +694,9 @@
 					}
 					if (p.magnetic) {
 						pos = this.tryMagnetic(pos, p);
+					}
+					if (p.align) {
+						pos = this.tryAlign(pos, p);
 					}
 					el.dragEl.style.left = pos.x + 'px';
 					el.dragEl.style.top = pos.y + 'px';
