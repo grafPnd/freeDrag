@@ -161,10 +161,10 @@
 						scope = el.destScope || el.scope,
 						rels =  $(scope).children().filter(':visible');
 						
-					if(p.rel){
-						rels = $(p.rel,el.parentNode);
-					}else{
-						rels = $(scope).children().filter(':visible')
+					if (p.rel) {
+						rels = $(p.rel, el.parentNode);
+					} else {
+						rels = $(scope).children().filter(':visible');
 					}
 					p.grid = {
 						inc: [],
@@ -500,6 +500,14 @@
 								el.onHold = true;
 								result.x = p.lim.centerX - el.dragEl.clientWidth  / 2 - el.runtime.borderX / 2;
 							}else{
+								el.onHold = false;
+							}
+						}
+						if (p.align.x == 'right') {
+							if (Math.abs(delta.x)  < p.align.sensitivity) {
+								el.onHold = true;
+								result.x = p.lim.right - el.dragEl.clientWidth - el.runtime.borderX;
+							} else {
 								el.onHold = false;
 							}
 						}
